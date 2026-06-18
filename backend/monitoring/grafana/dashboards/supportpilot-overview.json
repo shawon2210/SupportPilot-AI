@@ -1,0 +1,122 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "supportpilot-overview",
+    "title": "SupportPilot AI — Overview",
+    "tags": ["supportpilot", "saas"],
+    "timezone": "utc",
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "title": "HTTP Requests / sec",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}} {{status_code}}"
+          }
+        ]
+      },
+      {
+        "title": "Request Latency (p95)",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95 {{endpoint}}"
+          }
+        ]
+      },
+      {
+        "title": "Messages Sent",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(messages_sent_total[5m])",
+            "legendFormat": "{{role}}"
+          }
+        ]
+      },
+      {
+        "title": "Documents Processed",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "targets": [
+          {
+            "expr": "rate(documents_processed_total[5m])",
+            "legendFormat": "{{status}}"
+          }
+        ]
+      },
+      {
+        "title": "AI Tokens Used",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "targets": [
+          {
+            "expr": "rate(ai_tokens_used_total[5m])",
+            "legendFormat": "{{model}}"
+          }
+        ]
+      },
+      {
+        "title": "AI Request Latency",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(ai_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95 {{provider}}"
+          }
+        ]
+      },
+      {
+        "title": "Active Workspaces",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 24 },
+        "targets": [
+          {
+            "expr": "active_workspaces"
+          }
+        ]
+      },
+      {
+        "title": "Widget Chats",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 24 },
+        "targets": [
+          {
+            "expr": "sum(rate(widget_chats_total[5m]))"
+          }
+        ]
+      },
+      {
+        "title": "Knowledge Gaps",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 24 },
+        "targets": [
+          {
+            "expr": "sum(knowledge_gaps_total)"
+          }
+        ]
+      },
+      {
+        "title": "Escalations",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 24 },
+        "targets": [
+          {
+            "expr": "sum(escalations_total)"
+          }
+        ]
+      }
+    ]
+  }
+}

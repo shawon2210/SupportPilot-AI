@@ -1,0 +1,153 @@
+# SupportPilot AI — CI/CD Pipeline
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ── Lint ─────────────────────────────────────────────────────────
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          pip install ruff mypy
+          pip install -r requirements.txt
+
+      - name: Run Ruff linter
+        working-directory: ./backend
+        run: ruff check app/ tests/
+
+      - name: Run Ruff formatter check
+        working-directory: ./backend
+        run: ruff format --check app/ tests/
+
+      - name: Run type checking
+        working-directory: ./backend
+        run: mypy app/ --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+  # ── Security Scan ────────────────────────────────────────────────
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          pip install bandit safety
+          pip install -r requirements.txt
+
+      - name: Run Bandit security scan
+        working-directory: ./backend
+        run: bandit -r app/ -ll -ii
+
+      - name: Check for known vulnerabilities
+        working-directory: ./backend
+        run: safety check -r requirements.txt
+        continue-on-error: true
+
+  # ── Tests ────────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: ./backend
+        run: |
+          python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
+        env:
+          APP_ENV: testing
+          DATABASE_URL: sqlite+aiosqlite:///./data/test.db
+          SECRET_KEY: test-secret-key-for-ci
+          REDIS_URL: redis://localhost:6379/1
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./backend/coverage.xml
+
+  # ── Build ────────────────────────────────────────────────────────
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        working-directory: ./backend
+        run: |
+          docker build -t supportpilot-api:${{ github.sha }} .
+          docker tag supportpilot-api:${{ github.sha }} supportpilot-api:latest
+
+      - name: Test Docker image
+        working-directory: ./backend
+        run: |
+          docker run -d --name test-api \
+            -e APP_ENV=testing \
+            -e SECRET_KEY=test-secret \
+            -e DATABASE_URL=sqlite+aiosqlite:///./data/test.db \
+            -p 8000:8000 \
+            supportpilot-api:${{ github.sha }}
+          sleep 5
+          docker exec test-api python -c "import httpx; r = httpx.get('http://localhost:8000/api/v1/health'); print(r.json()); assert r.status_code == 200"
+          docker stop test-api
+          docker rm test-api
+
+  # ── Deploy (Production) ──────────────────────────────────────────
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploy to Railway / AWS / your platform here"
+          echo "Image: supportpilot-api:${{ github.sha }}"
+          # Example Railway deploy:
+          # railway up --service supportpilot-api
+          #
+          # Example AWS ECS:
+          # aws ecs update-service --cluster supportpilot --service api --force-new-deployment
