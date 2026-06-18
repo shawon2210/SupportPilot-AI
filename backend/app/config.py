@@ -131,7 +131,14 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, v: Any) -> list[str]:
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            import json
+            try:
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return [str(o).strip() for o in parsed]
+            except (json.JSONDecodeError, ValueError):
+                pass
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
         return v
 
     # ── Computed Properties ────────────────────────────────────

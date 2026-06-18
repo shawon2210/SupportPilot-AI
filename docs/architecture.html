@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SupportPilot AI — Architecture Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e17;
+    color: #e2e8f0;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 40px;
+  }
+  .layer {
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    position: relative;
+    background: #0f172a;
+  }
+  .layer-label {
+    position: absolute;
+    top: -11px;
+    left: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0 10px;
+    background: #0f172a;
+  }
+  .layer-client .layer-label { color: #38bdf8; }
+  .layer-gateway .layer-label { color: #a78bfa; }
+  .layer-services .layer-label { color: #34d399; }
+  .layer-ai .layer-label { color: #f472b6; }
+  .layer-data .layer-label { color: #fbbf24; }
+  .layer-external .layer-label { color: #fb923c; }
+  .layer-devops .layer-label { color: #60a5fa; }
+
+  .layer-client { border-color: #1e3a5f; }
+  .layer-gateway { border-color: #2e1065; }
+  .layer-services { border-color: #064e3b; }
+  .layer-ai { border-color: #500724; }
+  .layer-data { border-color: #451a03; }
+  .layer-external { border-color: #431407; }
+  .layer-devops { border-color: #1e3a5f; }
+
+  .components {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .component {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 140px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .component:hover {
+    border-color: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .component-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 4px;
+  }
+  .component-tech {
+    font-size: 10px;
+    color: #94a3b8;
+  }
+  .component-icon {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .arrow-row {
+    text-align: center;
+    padding: 6px 0;
+    color: #475569;
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .diagram-title {
+    text-align: center;
+    font-size: 15px;
+    color: #94a3b8;
+    margin: 32px 0 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .flow-section {
+    margin-top: 40px;
+    border-top: 1px solid #1e293b;
+    padding-top: 32px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .flow-step {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 8px 14px;
+    color: #e2e8f0;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    color: #475569;
+    font-size: 16px;
+  }
+  .flow-label {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .pattern-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .pattern-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #38bdf8;
+    margin-bottom: 4px;
+  }
+  .pattern-where {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+  .pattern-why {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #1e293b;
+    font-size: 11px;
+    color: #475569;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>SupportPilot AI</h1>
+<p class="subtitle">System Architecture — Multi-Tenant AI Customer Support SaaS</p>
+
+<!-- CLIENT LAYER -->
+<div class="layer layer-client">
+  <span class="layer-label">Client Layer</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#128187;</div>
+      <div class="component-name">Next.js 15 Dashboard</div>
+      <div class="component-tech">React 19 + TypeScript + Tailwind</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128172;</div>
+      <div class="component-name">Embeddable Chat Widget</div>
+      <div class="component-tech">Vanilla JS — Single Script Tag</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#127760;</div>
+      <div class="component-name">Third-Party Integrations</div>
+      <div class="component-tech">React / Vue / WordPress / Shopify</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-row">&#11015; HTTPS / WSS &#11015;</div>
+
+<!-- API GATEWAY -->
+<div class="layer layer-gateway">
+  <span class="layer-label">API Gateway — FastAPI</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#128274;</div>
+      <div class="component-name">Auth Middleware</div>
+      <div class="component-tech">Clerk JWT Validation</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#9889;</div>
+      <div class="component-name">Rate Limiter</div>
+      <div class="component-tech">Per-Workspace + Per-User</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#127758;</div>
+      <div class="component-name">CORS Handler</div>
+      <div class="component-tech">Strict Origin Whitelist</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128228;</div>
+      <div class="component-name">Request Validation</div>
+      <div class="component-tech">Pydantic Schemas</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128640;</div>
+      <div class="component-name">Metrics Collector</div>
+      <div class="component-tech">Prometheus Middleware</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-row">&#11015; Dependency Injection &#11015;</div>
+
+<!-- SERVICE LAYER -->
+<div class="layer layer-services">
+  <span class="layer-label">Service Layer</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#127970;</div>
+      <div class="component-name">Workspace Service</div>
+      <div class="component-tech">CRUD + Slug Generation</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128196;</div>
+      <div class="component-name">Document Service</div>
+      <div class="component-tech">Upload + Extract + Chunk</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128172;</div>
+      <div class="component-name">Chat Service</div>
+      <div class="component-tech">RAG Pipeline + Streaming</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128230;</div>
+      <div class="component-name">Widget Service</div>
+      <div class="component-tech">Config + Public Chat</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128179;</div>
+      <div class="component-name">Billing Service</div>
+      <div class="component-tech">Stripe + Plans + Limits</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128202;</div>
+      <div class="component-name">Analytics Service</div>
+      <div class="component-tech">PostHog + Dashboards</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">AI Features Service</div>
+      <div class="component-tech">Classification + Escalation</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128279;</div>
+      <div class="component-name">Webhook Service</div>
+      <div class="component-tech">Outbox + Delivery</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128269;</div>
+      <div class="component-name">Search Service</div>
+      <div class="component-tech">Semantic + Keyword</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128231;</div>
+      <div class="component-name">Website Crawler</div>
+      <div class="component-tech">Scrapy + Sitemap</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-row">&#11015; Provider Factory &#11015;</div>
+
+<!-- AI PROVIDER ABSTRACTION -->
+<div class="layer layer-ai">
+  <span class="layer-label">AI Provider Abstraction</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">OpenAI</div>
+      <div class="component-tech">GPT-4o / text-embedding-3</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">Anthropic</div>
+      <div class="component-tech">Claude 3.5 Sonnet</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">Gemini</div>
+      <div class="component-tech">Gemini 1.5 Pro</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">DeepSeek</div>
+      <div class="component-tech">DeepSeek-V3</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">OpenRouter</div>
+      <div class="component-tech">Multi-Model Gateway</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">Kimi</div>
+      <div class="component-tech">Moonshot AI</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#129302;</div>
+      <div class="component-name">FreeKey</div>
+      <div class="component-tech">OpenAI-Compatible</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-row">&#11015; SQLAlchemy + AsyncPG &#11015;</div>
+
+<!-- DATA LAYER -->
+<div class="layer layer-data">
+  <span class="layer-label">Data Layer</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#128451;</div>
+      <div class="component-name">PostgreSQL</div>
+      <div class="component-tech">Primary Database (14 Models)</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128269;</div>
+      <div class="component-name">pgvector</div>
+      <div class="component-tech">Vector Search (IVFFlat)</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#9889;</div>
+      <div class="component-name">Redis</div>
+      <div class="component-tech">Cache + Streams + Rate Limit</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128230;</div>
+      <div class="component-name">Supabase Storage</div>
+      <div class="component-tech">File Uploads (PDF/DOCX)</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128200;</div>
+      <div class="component-name">Outbox Table</div>
+      <div class="component-tech">Reliable Webhook Delivery</div>
+    </div>
+  </div>
+</div>
+
+<div class="arrow-row">&#11015; REST + Webhooks &#11015;</div>
+
+<!-- EXTERNAL SERVICES -->
+<div class="layer layer-external">
+  <span class="layer-label">External Services</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#128274;</div>
+      <div class="component-name">Clerk</div>
+      <div class="component-tech">Authentication (JWT)</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128179;</div>
+      <div class="component-name">Stripe</div>
+      <div class="component-tech">Payments + Subscriptions</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128202;</div>
+      <div class="component-name">PostHog</div>
+      <div class="component-tech">Product Analytics</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128640;</div>
+      <div class="component-name">Sentry</div>
+      <div class="component-tech">Error Tracking</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128231;</div>
+      <div class="component-name">Resend</div>
+      <div class="component-tech">Transactional Email</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128279;</div>
+      <div class="component-name">Slack</div>
+      <div class="component-tech">Slash Commands + Alerts</div>
+    </div>
+  </div>
+</div>
+
+<!-- DEVOPS -->
+<div class="layer layer-devops">
+  <span class="layer-label">DevOps + Infrastructure</span>
+  <div class="components">
+    <div class="component">
+      <div class="component-icon">&#128051;</div>
+      <div class="component-name">Docker Compose</div>
+      <div class="component-tech">6 Services (Dev + Prod)</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128640;</div>
+      <div class="component-name">GitHub Actions</div>
+      <div class="component-tech">Lint + Test + Build + Deploy</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128200;</div>
+      <div class="component-name">Prometheus</div>
+      <div class="component-tech">15+ Custom Metrics</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#128202;</div>
+      <div class="component-name">Grafana</div>
+      <div class="component-tech">Dashboards + Alerts</div>
+    </div>
+    <div class="component">
+      <div class="component-icon">&#9881;</div>
+      <div class="component-name">Railway + Vercel</div>
+      <div class="component-tech">Production Deployment</div>
+    </div>
+  </div>
+</div>
+
+<!-- RAG PIPELINE FLOW -->
+<div class="flow-section">
+  <div class="diagram-title">RAG Pipeline</div>
+  <div style="margin-bottom: 20px;">
+    <div class="flow-label">Document Ingestion</div>
+    <div class="flow-row">
+      <div class="flow-step">Upload (PDF/DOCX/TXT/MD)</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">File Validation (MIME + Size)</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Text Extraction</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Chunking (1000t / 200 overlap)</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Embedding Generation</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Vector Storage (pgvector)</div>
+    </div>
+  </div>
+  <div>
+    <div class="flow-label">Query Flow</div>
+    <div class="flow-row">
+      <div class="flow-step">User Message</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Query Embedding</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Semantic Search (cosine)</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Context Augmentation</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">LLM Generation (streaming)</div>
+      <span class="flow-arrow">&#10140;</span>
+      <div class="flow-step">Response + Citations</div>
+    </div>
+  </div>
+</div>
+
+<!-- MULTI-TENANT FLOW -->
+<div class="flow-section" style="border-top: 1px solid #1e293b; padding-top: 32px;">
+  <div class="diagram-title">Multi-Tenant Request Flow</div>
+  <div class="flow-row" style="justify-content: center;">
+    <div class="flow-step">HTTP Request</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">JWT Decode</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">Extract workspace_id</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">RBAC Check</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">Rate Limit Check</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">Feature Flag Check</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">Tenant-Scoped Query</div>
+    <span class="flow-arrow">&#10140;</span>
+    <div class="flow-step">Response</div>
+  </div>
+</div>
+
+<!-- DESIGN PATTERNS -->
+<div class="flow-section" style="border-top: 1px solid #1e293b; padding-top: 32px;">
+  <div class="diagram-title">Design Patterns</div>
+  <div class="patterns-grid">
+    <div class="pattern-card">
+      <div class="pattern-name">Repository</div>
+      <div class="pattern-where">Data Layer</div>
+      <div class="pattern-why">Abstracts DB operations. TenantRepository enforces workspace_id on every query — impossible to accidentally leak data.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Service Layer</div>
+      <div class="pattern-where">Business Logic</div>
+      <div class="pattern-why">Encapsulates business rules. Services call repositories, never write raw SQL. Testable in isolation.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Provider / Strategy</div>
+      <div class="pattern-where">AI Layer</div>
+      <div class="pattern-why">Swap AI vendors via env var. 7 providers implement AIProvider ABC. Zero vendor-specific business logic.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Factory</div>
+      <div class="pattern-where">Provider Creation</div>
+      <div class="pattern-why">Single point of provider instantiation. Reads AI_PROVIDER env var, returns correct provider instance.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Observer / Events</div>
+      <div class="pattern-where">Analytics, Audit</div>
+      <div class="pattern-why">22 event types flow through Redis Streams. Decouples side effects from core logic.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Outbox</div>
+      <div class="pattern-where">Webhook Delivery</div>
+      <div class="pattern-why">Write to outbox in same transaction as business logic. Background processor delivers with retry + circuit breaker.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Dependency Injection</div>
+      <div class="pattern-where">FastAPI Endpoints</div>
+      <div class="pattern-why">Services injected via Depends(). Enables easy testing with mock dependencies.</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-name">Feature Flags</div>
+      <div class="pattern-where">Plan Gating</div>
+      <div class="pattern-why">20 feature flags enforce plan boundaries at code level. Not just UI — API rejects unauthorized features.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TECH SUMMARY -->
+<div class="flow-section" style="border-top: 1px solid #1e293b; padding-top: 32px;">
+  <div class="diagram-title">Tech Stack Summary</div>
+  <div class="components" style="max-width: 800px; margin: 0 auto;">
+    <div class="component"><div class="component-name">FastAPI</div><div class="component-tech">Python 3.12+</div></div>
+    <div class="component"><div class="component-name">Next.js 15</div><div class="component-tech">React 19 + TypeScript</div></div>
+    <div class="component"><div class="component-name">PostgreSQL</div><div class="component-tech">+ pgvector</div></div>
+    <div class="component"><div class="component-name">Redis</div><div class="component-tech">7 Alpine</div></div>
+    <div class="component"><div class="component-name">SQLAlchemy</div><div class="component-tech">2.0 Async</div></div>
+    <div class="component"><div class="component-name">Pydantic</div><div class="component-tech">v2</div></div>
+    <div class="component"><div class="component-name">LangChain</div><div class="component-tech">RAG Pipeline</div></div>
+    <div class="component"><div class="component-name">Stripe</div><div class="component-tech">Billing</div></div>
+    <div class="component"><div class="component-name">Clerk</div><div class="component-tech">Auth</div></div>
+    <div class="component"><div class="component-name">Docker</div><div class="component-tech">Compose v3.9</div></div>
+    <div class="component"><div class="component-name">Prometheus</div><div class="component-tech">+ Grafana</div></div>
+    <div class="component"><div class="component-name">GitHub Actions</div><div class="component-tech">CI/CD</div></div>
+  </div>
+</div>
+
+<div class="footer">
+  SupportPilot AI — Architecture Diagram &mdash; 100 Python Modules &bull; 79 API Routes &bull; 97 Tests &bull; 7 AI Providers &bull; 14 DB Models<br>
+  <span style="color: #334155;">github.com/shawon2210/SupportPilot-AI</span>
+</div>
+
+</div>
+</body>
+</html>
