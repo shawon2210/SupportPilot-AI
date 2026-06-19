@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.core.security import generate_api_key, generate_uuid
 from app.models.api_key import ApiKey
 
@@ -47,6 +48,7 @@ async def list_api_keys(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """List all API keys for a workspace (without full keys)."""
     stmt = select(ApiKey).where(
@@ -76,6 +78,7 @@ async def create_api_key(
     data: ApiKeyCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """
     Create a new API key.
@@ -119,6 +122,7 @@ async def delete_api_key(
     key_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Revoke an API key."""
     stmt = select(ApiKey).where(
@@ -141,6 +145,7 @@ async def rotate_api_key(
     key_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """
     Rotate an API key — creates a new key and deactivates the old one.

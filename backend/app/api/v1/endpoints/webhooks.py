@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.models.webhook import WebhookEvent
 from app.services.webhook_service import WebhookService, WebhookError
 
@@ -77,6 +78,7 @@ async def list_webhooks(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """List all webhooks for a workspace."""
     service = WebhookService(db)
@@ -90,6 +92,7 @@ async def create_webhook(
     data: WebhookCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Create a new webhook subscription."""
     service = WebhookService(db)
@@ -111,6 +114,7 @@ async def get_webhook(
     webhook_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Get webhook details."""
     service = WebhookService(db)
@@ -125,6 +129,7 @@ async def update_webhook(
     data: WebhookUpdate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Update webhook configuration."""
     service = WebhookService(db)
@@ -145,6 +150,7 @@ async def delete_webhook(
     webhook_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Delete a webhook."""
     service = WebhookService(db)

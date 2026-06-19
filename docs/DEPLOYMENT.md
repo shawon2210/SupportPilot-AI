@@ -1,322 +1,263 @@
-# SupportPilot AI — Deployment Guide
+# Deployment Guide — SupportPilot AI
+
+**Estimated time:** 30 minutes
+
+---
 
 ## Overview
 
-This guide walks through deploying SupportPilot AI to production using:
-- **Backend**: Railway
-- **Frontend**: Vercel
-- **Database**: Supabase (PostgreSQL + pgvector)
-- **File Storage**: Supabase Storage
-- **Monitoring**: Sentry (free tier)
+This guide walks through deploying SupportPilot AI to production:
+
+- **Frontend** → Vercel
+- **Backend** → Railway
+- **Database** → Supabase (PostgreSQL + pgvector)
+- **Redis** → Upstash Redis
 
 ---
 
-## Prerequisites
+## Step 1: Prerequisites
 
-1. GitHub repo with the codebase
-2. Railway account (railway.app)
-3. Vercel account (vercel.com)
-4. Supabase account (supabase.com)
-5. Clerk account (clerk.com)
-6. Stripe account (stripe.com)
+### Accounts needed:
+- [GitHub](https://github.com) — repository hosting
+- [Vercel](https://vercel.com) — frontend deployment
+- [Railway](https://railway.app) — backend deployment
+- [Supabase](https://supabase.com) — PostgreSQL database
+- [Upstash](https://upstash.com) — Redis
+- [Clerk](https://clerk.com) — authentication
+- [OpenAI](https://platform.openai.com) — LLM provider
+- [Stripe](https://stripe.com) — payments (optional for demo)
+
+### Tools installed locally:
+- Git
+- Node.js 20+
+- Python 3.12+
+- Docker (optional, for local testing)
 
 ---
 
-## Step 1: Supabase Setup
-
-### Create Project
-
-1. Go to supabase.com → New Project
-2. Name: `supportpilot-production`
-3. Region: closest to your users
-4. Save the database password — you'll need it
-
-### Enable pgvector
-
-In the Supabase SQL Editor, run:
-
-```sql
--- Enable pgvector extension
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- Verify
-SELECT * FROM pg_extension WHERE extname = 'vector';
-```
-
-### Run Migrations
-
-The backend auto-migrations on startup, but you can also run them manually:
+## Step 2: Push to GitHub
 
 ```bash
-# Set your Supabase connection string
-export DATABASE_URL="postgresql+asyncpg://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
-
-# Run Alembic migrations
-cd backend
-alembic upgrade head
+cd SupportPilot-AI
+git init
+git add .
+git commit -m "Initial commit: SupportPilot AI v0.1.0"
+git remote add origin git@github.com:shawon2210/SupportPilot-AI.git
+git push -u origin main
 ```
-
-### Create Storage Bucket
-
-In Supabase Dashboard → Storage:
-
-1. Create bucket: `documents`
-2. Set to **Private** (not public)
-3. Add RLS policy:
-
-```sql
--- Allow authenticated uploads
-CREATE POLICY "Allow authenticated uploads" ON storage.objects
-FOR INSERT TO authenticated WITH CHECK (bucket_id = 'documents');
-
--- Allow authenticated reads
-CREATE POLICY "Allow authenticated reads" ON storage.objects
-FOR SELECT TO authenticated USING (bucket_id = 'documents');
-```
-
-### Get API Keys
-
-Save these from Supabase Dashboard → Settings → API:
-- `SUPABASE_URL` (Project URL)
-- `SUPABASE_SERVICE_KEY` (service_role key — keep secret)
-- `SUPABASE_ANON_KEY` (anon key — for frontend)
 
 ---
 
-## Step 2: Clerk Setup
+## Step 3: Set Up Supabase (Database)
 
-1. Go to clerk.com → Create Application
-2. Name: `SupportPilot AI`
-3. Configure sign-in methods (Email, Google OAuth recommended)
-4. Get your keys from API Keys page:
-   - `CLERK_PUBLISHABLE_KEY` (frontend)
-   - `CLERK_SECRET_KEY` (backend)
-   - `CLERK_JWKS_URL` (backend — for JWT verification)
-
-### Configure Webhook
-
-1. Go to Webhooks → Add Endpoint
-2. URL: `https://your-api.supportpilot.ai/api/v1/auth/webhook`
-3. Events: `user.created`, `user.updated`, `user.deleted`
-4. Save the webhook signing secret as `CLERK_WEBHOOK_SECRET`
+1. Create a new Supabase project
+2. Copy the connection string from Settings → Database
+3. Enable the pgvector extension:
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vector;
+   ```
+4. Save the connection string for later: `postgresql+asyncpg://...`
 
 ---
 
-## Step 3: Railway Deployment
+## Step 4: Set Up Upstash (Redis)
 
-### Create Project
-
-1. Go to railway.app → New Project
-2. Deploy from GitHub repo
-3. Select the `backend` directory as the root
-
-### Environment Variables
-
-In Railway → Variables, add:
-
-```bash
-APP_ENV=production
-DATABASE_URL=postgresql+asyncpg://postgres:<supabase-password>@db.<project-ref>.supabase.co:5432/postgres
-REDIS_URL=redis://redis:6379/0
-
-# AI Provider (choose one)
-AI_PROVIDER=openai
-OPENAI_API_KEY=sk-...
-
-# Auth
-CLERK_SECRET_KEY=sk_test_...
-CLERK_WEBHOOK_SECRET=whsec_...
-
-# Billing
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_STARTER=price_...
-STRIPE_PRICE_PRO=price_...
-STRIPE_PRICE_ENTERPRISE=price_...
-
-# Monitoring
-SENTRY_DSN=https://...
-POSTHOG_API_KEY=phc_...
-
-# CORS
-CORS_ORIGINS=https://supportpilot.ai,https://www.supportpilot.ai
-
-# Security
-SECRET_KEY=<generate-32-char-random-string>
-```
-
-### Generate SECRET_KEY
-
-```bash
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-### Redis on Railway
-
-1. In the same Railway project, add a Redis service
-2. Railway auto-injects `REDIS_URL` — use that value
-
-### Health Check
-
-Railway auto-detects the `/api/v1/health` endpoint. Verify:
-- Health check path: `/api/v1/health`
-- Port: `8000`
-
-### Custom Domain
-
-1. Railway → Settings → Domains
-2. Add: `api.supportpilot.ai`
-3. Update DNS CNAME record as instructed
+1. Create an Upstash Redis database (free tier works)
+2. Copy the Redis URL: `redis://...`
+3. Save for Railway env vars
 
 ---
 
-## Step 4: Vercel Deployment (Frontend)
+## Step 5: Set Up Clerk (Authentication)
 
-### Connect Repository
+1. Create a Clerk application
+2. Get your API keys from API Keys → Quick Copy:
+   - Publishable Key (starts with `pk_`)
+   - Secret Key (starts with `sk_`)
+3. Set the JWKS URL: `https://your-app.clerk.accounts.dev/.well-known/jwks.json`
+4. (Optional) Configure a webhook endpoint for user sync
 
-1. Go to vercel.com → New Project
-2. Import your GitHub repo
-3. Framework: Next.js
-4. Root directory: `frontend` (if you have one) or configure as needed
+---
 
-### Environment Variables
+## Step 6: Deploy Backend to Railway
+
+### Option A: Connect GitHub repo (recommended)
+
+1. Go to [Railway](https://railway.app) → New Project → Deploy from GitHub
+2. Select your `SupportPilot-AI` repo
+3. Railway will detect the Dockerfile and deploy
+
+### Option B: CLI deploy
 
 ```bash
-NEXT_PUBLIC_API_URL=https://api.supportpilot.ai
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
-NEXT_PUBLIC_POSTHOG_KEY=phc_...
-NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+npm install -g @railway/cli
+railway login
+railway init
+railway up
 ```
 
-### Custom Domain
+### Set environment variables on Railway:
 
+```bash
+railway variables set APP_ENV=production
+railway variables set SECRET_KEY=$(openssl rand -hex 32)
+railway variables set DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/supportpilot"
+railway variables set REDIS_URL="redis://user:pass@host:6379"
+railway variables set AI_PROVIDER=openai
+railway variables set OPENAI_API_KEY="sk-xxx"
+railway variables set CLERK_SECRET_KEY="sk_xxx"
+railway variables set CLERK_PUBLISHABLE_KEY="pk_xxx"
+railway variables set CLERK_JWKS_URL="https://xxx.clerk.accounts.dev/.well-known/jwks.json"
+railway variables set CORS_ORIGINS="https://your-frontend-url.vercel.app"
+railway variables set SENTRY_DSN="https://xxx@xxx.ingest.sentry.io/xxx"
+```
+
+### Verify deployment:
+
+```bash
+# Check health endpoint
+curl https://your-app.up.railway.app/api/v1/health
+
+# Should return: {"status":"healthy","version":"0.1.0"}
+```
+
+### Seed demo data:
+
+```bash
+railway run python -m scripts.demo_data
+```
+
+---
+
+## Step 7: Deploy Frontend to Vercel
+
+### Option A: Connect GitHub repo (recommended)
+
+1. Go to [Vercel](https://vercel.com) → Add New → Project
+2. Import your `SupportPilot-AI` repo
+3. Vercel auto-detects Next.js — no config needed
+4. Set environment variables:
+   ```
+   NEXT_PUBLIC_API_URL=https://your-backend.up.railway.app
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_xxx
+   NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+   NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+   ```
+5. Click Deploy
+
+### Option B: CLI deploy
+
+```bash
+npm install -g vercel
+cd frontend
+vercel
+```
+
+---
+
+## Step 8: Verify Deployment
+
+### Health checks:
+```bash
+# Backend
+curl https://your-backend.up.railway.app/api/v1/health
+
+# Frontend
+curl -I https://your-frontend.vercel.app
+```
+
+### End-to-end test:
+1. Open https://your-frontend.vercel.app
+2. Sign in with demo credentials or create new account
+3. Create a workspace
+4. Upload a document
+5. Ask a question in chat
+6. Configure the widget
+7. Check analytics dashboard
+
+---
+
+## Step 9: Set Up Custom Domains (Optional)
+
+### Frontend:
 1. Vercel → Settings → Domains
-2. Add: `supportpilot.ai` and `www.supportpilot.ai`
+2. Add your domain (e.g., `supportpilot.yourdomain.com`)
 3. Update DNS records as instructed
 
----
-
-## Step 5: Stripe Setup
-
-### Create Products
-
-In Stripe Dashboard:
-
-1. Create 4 products:
-   - **Free** — $0/month (no Stripe product needed)
-   - **Starter** — $29/month → Save Price ID as `STRIPE_PRICE_STARTER`
-   - **Pro** — $99/month → Save Price ID as `STRIPE_PRICE_PRO`
-   - **Enterprise** — $299/month → Save Price ID as `STRIPE_PRICE_ENTERPRISE`
-
-### Configure Webhook
-
-1. Stripe → Developers → Webhooks → Add Endpoint
-2. URL: `https://api.supportpilot.ai/api/v1/billing/webhook`
-3. Events to listen for:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
-4. Save the webhook signing secret as `STRIPE_WEBHOOK_SECRET`
+### Backend:
+1. Railway → Settings → Networking → Custom Domains
+2. Add your domain (e.g., `api.yourdomain.com`)
+3. Update DNS records
 
 ---
 
-## Step 6: Sentry Setup
+## Step 10: Post-Deploy Checklist
 
-1. Go to sentry.io → Create Project
-2. Platform: Python (FastAPI)
-3. Copy the DSN
-4. Add `SENTRY_DSN` to Railway environment variables
-
----
-
-## Step 7: Verify Deployment
-
-### Health Check
-
-```bash
-curl https://api.supportpilot.ai/api/v1/health
-# Expected: {"status":"healthy","version":"0.1.0"}
-```
-
-### Readiness Check
-
-```bash
-curl https://api.supportpilot.ai/api/v1/health/ready
-# Expected: {"status":"ready","database":"connected"}
-```
-
-### Create a Test Workspace
-
-```bash
-# Sign up via the frontend, then:
-curl -X POST https://api.supportpilot.ai/api/v1/workspaces \
-  -H "Authorization: Bearer <clerk-jwt>" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test Workspace", "slug": "test-workspace"}'
-```
-
----
-
-## Step 8: CI/CD Pipeline
-
-The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push to `main`:
-
-1. **Lint** — Ruff
-2. **Security** — Bandit + Safety
-3. **Test** — pytest (97 tests)
-4. **Build** — Docker image
-5. **Deploy** — Railway (auto-deploy on main branch)
-
-To enable auto-deploy on Railway:
-1. Railway → Project → Settings → Deploy
-2. Connect to GitHub
-3. Enable auto-deploy on `main` branch
-
----
-
-## Cost Estimates (Free Tier)
-
-| Service | Free Tier | Notes |
-|---------|-----------|-------|
-| Railway | $5 credit/month | Enough for 1-2 services |
-| Vercel | 100GB bandwidth | Generous free tier |
-| Supabase | 500MB DB + 1GB storage | Enough for MVP |
-| Clerk | 10K MAU | Generous free tier |
-| Stripe | No monthly fee | 2.9% + 30c per transaction |
-| Sentry | 5K events/month | Enough for monitoring |
-| PostHog | 1M events/month | Very generous free tier |
-
-**Total monthly cost for MVP: ~$0–$20**
+- [ ] Backend health endpoint responds
+- [ ] Frontend loads without errors
+- [ ] Sign in / Sign up works
+- [ ] Workspace creation works
+- [ ] Document upload works
+- [ ] Chat with RAG works
+- [ ] Widget embed works
+- [ ] Analytics dashboard shows data
+- [ ] Stripe checkout works (test mode)
+- [ ] Sentry receives error events
+- [ ] Rate limiting is active
+- [ ] CORS allows frontend origin
 
 ---
 
 ## Troubleshooting
 
-### Database Connection Failures
+### Backend returns 502:
+- Check `railway logs` for startup errors
+- Verify all env vars are set
+- Ensure database is accessible (check Supabase allowlist)
 
-- Verify `DATABASE_URL` format: `postgresql+asyncpg://user:pass@host:5432/db`
-- Check Supabase's "Connection Pooling" settings
-- Ensure IP allowlist isn't blocking Railway
+### Frontend shows blank page:
+- Check browser console for errors
+- Verify `NEXT_PUBLIC_API_URL` is correct
+- Ensure CORS allows your frontend origin
 
-### Redis Connection Failures
+### Database connection fails:
+- Check Supabase connection string format
+- Ensure your IP is allowed (Supabase → Settings → Network)
+- Verify pgvector extension is enabled
 
-- Railway Redis auto-injects `REDIS_URL`
-- Verify the URL format: `redis://redis:6379/0`
+### Auth doesn't work:
+- Verify Clerk keys match (test vs production)
+- Check JWKS URL is accessible
+- Ensure callback URLs are configured in Clerk
 
-### Clerk Auth Failures
+---
 
-- Verify `CLERK_SECRET_KEY` matches the Clerk dashboard
-- Check that the JWT audience matches your API URL
-- Ensure the Clerk webhook signing secret is correct
+## Cost Estimates (Free Tier)
 
-### Stripe Webhook Failures
+| Service | Free Tier |
+|---------|-----------|
+| Vercel | 100GB bandwidth, unlimited sites |
+| Railway | $5 credit/month, 500 hours |
+| Supabase | 500MB database, 1GB storage |
+| Upstash | 10K requests/day |
+| Clerk | 10K monthly active users |
+| OpenAI | $5 test credit |
+| Stripe | No monthly fee (per-transaction) |
 
-- Verify `STRIPE_WEBHOOK_SECRET` matches Stripe Dashboard
-- Check that the webhook URL is accessible (not behind auth)
-- Test with Stripe CLI: `stripe listen --forward-to localhost:8000/api/v1/billing/webhook`
+**Total monthly cost for demo: $0-5**
+
+---
+
+## Scaling Path
+
+When you outgrow free tiers:
+
+| Service | Paid Tier | Cost |
+|---------|-----------|------|
+| Vercel Pro | $20/month | Analytics, bandwidth |
+| Railway Pro | $5/month | More compute, private networking |
+| Supabase Pro | $25/month | 8GB database, 100GB storage |
+| Upstash Pro | $10/month | Higher request limits |
+| Clerk | $25/month | 25K MAU |
+
+**Total for small production: ~$85/month**

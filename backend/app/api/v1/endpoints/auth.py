@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.security import create_access_token, verify_password, hash_password
 from app.models.user import User
 from app.schemas.user import UserResponse
 
@@ -28,10 +32,15 @@ async def get_current_user(request: Request) -> dict:
 
     # In production: validate JWT against Clerk JWKS
     # For Phase 1: extract user info from token or use a dev header
-    # Support X-User-ID header for development
-    user_id = request.headers.get("X-User-ID")
+    # Support X-User-ID header for development only — NEVER in production
+    from app.core.config import settings
+    if settings.APP_ENV == "development":
+        user_id = request.headers.get("X-User-ID")
+    else:
+        user_id = None
+
     if not user_id:
-        # Try to decode as JWT (dev mode)
+        # Try to decode as JWT
         try:
             from app.core.security import decode_access_token
             payload = decode_access_token(token)
@@ -43,6 +52,53 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Could not identify user")
 
     return {"id": user_id, "email": request.headers.get("X-User-Email", "")}
+
+
+# ── Login Schemas ───────────────────────────────────────────
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+# ── Login Endpoint ──────────────────────────────────────────
+
+@router.post("/login", response_model=LoginResponse)
+async def login(
+    body: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Authenticate a user with email and password, return JWT + user."""
+    stmt = select(User).where(User.email == body.email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not verify_password(body.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is deactivated")
+
+    token = create_access_token(
+        data={"sub": user.id, "email": user.email},
+        expires_delta=timedelta(hours=24),
+    )
+
+    return LoginResponse(
+        access_token=token,
+        user=UserResponse.model_validate(user),
+    )
+
+
 
 
 @router.get("/me", response_model=UserResponse)

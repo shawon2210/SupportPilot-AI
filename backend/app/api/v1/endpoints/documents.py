@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.knowledge_source import KnowledgeSourceResponse
 from app.services.document_service import DocumentService, DocumentProcessingError
@@ -24,6 +25,7 @@ async def upload_document(
     name: str | None = Form(None),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Upload a document to the knowledge base.
@@ -74,6 +76,7 @@ async def list_documents(
     status: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """List knowledge sources in the workspace."""
     pagination = PaginationParams(page=page, per_page=per_page)
@@ -102,6 +105,7 @@ async def get_document(
     source_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Get knowledge source details."""
     service = DocumentService(db)
@@ -115,6 +119,7 @@ async def delete_document(
     source_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Delete a knowledge source and all its chunks."""
     service = DocumentService(db)
@@ -127,6 +132,7 @@ async def get_document_chunks(
     source_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Get all chunks for a knowledge source."""
     service = DocumentService(db)

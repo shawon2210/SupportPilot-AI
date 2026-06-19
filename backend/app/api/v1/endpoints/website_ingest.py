@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.schemas.knowledge_source import KnowledgeSourceResponse
 from app.services.document_service import DocumentService, DocumentProcessingError
 
@@ -29,6 +30,7 @@ async def ingest_website(
     data: WebsiteIngestRequest,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Crawl a website and ingest its content into the knowledge base.

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.services.ai_features_service import AIFeaturesService
 
 router = APIRouter()
@@ -72,6 +73,7 @@ async def classify_ticket(
     data: ClassifyRequest,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Classify a support ticket by category, priority, and tags.
@@ -95,6 +97,7 @@ async def check_escalation(
     data: EscalationCheckRequest,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Check if a conversation should be escalated to a human agent.
@@ -123,6 +126,7 @@ async def get_suggested_reply(
     data: SuggestedReplyRequest,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Get an AI-suggested reply for a support agent.
@@ -151,6 +155,7 @@ async def detect_knowledge_gaps(
     days: int = Query(7, ge=1, le=90),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Analyze recent conversations to detect knowledge gaps.
@@ -174,6 +179,7 @@ async def list_knowledge_gaps(
     min_occurrences: int = Query(1, ge=1),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """List knowledge gaps for a workspace."""
     service = AIFeaturesService(db)
@@ -202,6 +208,7 @@ async def resolve_knowledge_gap(
     notes: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Mark a knowledge gap as resolved."""
     service = AIFeaturesService(db)

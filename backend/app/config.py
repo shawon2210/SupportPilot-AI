@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
     APP_URL: str = "http://localhost:8000"
-    SECRET_KEY: str = "change-me-in-production"
+    SECRET_KEY: str  # No default — app will crash if not set (prevents accidental deployment with known key)
 
     # ── Database ───────────────────────────────────────────────
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/supportpilot.db"

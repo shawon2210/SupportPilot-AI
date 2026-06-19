@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.chat import (
     ChatCreate,
@@ -36,6 +37,7 @@ async def create_chat(
     data: ChatCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Create a new chat session."""
     service = ChatService(db)
@@ -55,6 +57,7 @@ async def list_chats(
     status: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """List chat sessions in the workspace."""
     pagination = PaginationParams(page=page, per_page=per_page)
@@ -77,6 +80,7 @@ async def get_chat(
     chat_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Get a chat session with all its messages."""
     service = ChatService(db)
@@ -107,6 +111,7 @@ async def update_chat(
     data: ChatUpdate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Update chat metadata."""
     service = ChatService(db)
@@ -120,6 +125,7 @@ async def delete_chat(
     chat_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """Delete a chat session and all its messages."""
     service = ChatService(db)
@@ -137,6 +143,7 @@ async def send_message(
     source_id: str | None = Query(None, description="Optional source ID to limit RAG search"),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Send a message and get a complete response.
@@ -175,6 +182,7 @@ async def stream_message(
     source_id: str | None = Query(None, description="Optional source ID to limit RAG search"),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
 ):
     """
     Send a message and stream the response using Server-Sent Events (SSE).

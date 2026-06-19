@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.schemas.widget import WidgetConfigResponse, WidgetConfigUpdate
 from app.services.widget_service import WidgetService, WidgetChatRequest
 
@@ -24,6 +25,7 @@ async def get_widget_config(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Get widget configuration for a workspace."""
     service = WidgetService(db)
@@ -37,6 +39,7 @@ async def update_widget_config(
     data: WidgetConfigUpdate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Update widget configuration."""
     service = WidgetService(db)

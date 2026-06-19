@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.services.billing_service import BillingService, BillingError
 
 router = APIRouter()
@@ -39,6 +40,7 @@ async def get_subscription(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Get current subscription details for a workspace."""
     service = BillingService(db)
@@ -67,6 +69,7 @@ async def create_checkout(
     plan: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """
     Create a Stripe checkout session for upgrading a plan.
@@ -97,6 +100,7 @@ async def create_portal(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """
     Create a Stripe customer portal session.

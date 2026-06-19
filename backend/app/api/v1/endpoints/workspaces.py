@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.workspace import (
     WorkspaceCreate,
@@ -26,6 +27,7 @@ async def list_workspaces(
     per_page: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """List all workspaces for the current user."""
     pagination = PaginationParams(page=page, per_page=per_page)
@@ -51,6 +53,7 @@ async def create_workspace(
     data: WorkspaceCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Create a new workspace. Creator becomes the owner."""
     service = WorkspaceService(db)
@@ -63,6 +66,7 @@ async def get_workspace(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Get workspace details."""
     service = WorkspaceService(db)
@@ -81,6 +85,7 @@ async def update_workspace(
     data: WorkspaceUpdate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Update workspace details. Requires admin role."""
     # TODO: Add RBAC check
@@ -94,6 +99,7 @@ async def delete_workspace(
     workspace_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Delete a workspace. Requires owner role."""
     # TODO: Add RBAC check

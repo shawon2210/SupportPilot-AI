@@ -7,12 +7,34 @@ Respects robots.txt, has configurable depth and page limits.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import logging
 import re
+import socket
 from dataclasses import dataclass, field
 from urllib.parse import urljoin, urlparse
 
 logger = logging.getLogger("supportpilot.crawler")
+
+
+def _is_safe_url(url: str) -> bool:
+    """Validate URL against SSRF attacks — block private/internal IPs."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        # Resolve hostname to IP and check for private ranges
+        addr_info = socket.getaddrinfo(hostname, None)
+        for family, _, _, _, sockaddr in addr_info:
+            ip = ipaddress.ip_address(sockaddr[0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                return False
+        return True
+    except (socket.gaierror, ValueError):
+        return False
 
 
 @dataclass
@@ -70,6 +92,10 @@ class WebsiteCrawler:
         except ImportError:
             raise CrawlerError("httpx is required for web crawling")
 
+        # SSRF protection: reject private/internal URLs
+        if not _is_safe_url(url):
+            raise CrawlerError(f"URL blocked: private/internal addresses are not allowed for security reasons")
+
         base_domain = urlparse(url).netloc
         visited: set[str] = set()
         pages: list[CrawledPage] = []
@@ -123,6 +149,9 @@ class WebsiteCrawler:
 
     async def _fetch_page(self, client, url: str) -> CrawledPage:
         """Fetch and extract content from a single page."""
+        # Secondary SSRF check — catches redirect-based bypasses
+        if not _is_safe_url(url):
+            return CrawledPage(url=url, title="", content="", error="URL blocked: private/internal address detected")
         response = await client.get(url)
 
         if response.status_code != 200:

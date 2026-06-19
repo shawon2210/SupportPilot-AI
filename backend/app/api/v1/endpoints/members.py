@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.member import MemberInvite, MemberResponse, MemberUpdate
 from app.services.member_service import MemberService
@@ -22,6 +23,7 @@ async def list_members(
     role: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """List workspace members."""
     pagination = PaginationParams(page=page, per_page=per_page)
@@ -55,6 +57,7 @@ async def invite_member(
     data: MemberInvite,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Invite a member to the workspace. Requires admin role."""
     service = MemberService(db)
@@ -73,6 +76,7 @@ async def update_member(
     data: MemberUpdate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Update a member's role. Requires admin role."""
     service = MemberService(db)
@@ -90,6 +94,7 @@ async def remove_member(
     member_id: str,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Remove a member from the workspace. Requires admin role."""
     service = MemberService(db)

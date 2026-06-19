@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.services.analytics_service import AnalyticsService
 
 router = APIRouter()
@@ -21,6 +22,7 @@ async def get_workspace_analytics(
     days: int = Query(30, ge=1, le=365),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("member")),
 ):
     """Get analytics overview for a workspace dashboard."""
     service = AnalyticsService(db)
@@ -35,6 +37,7 @@ async def get_usage_over_time(
     days: int = Query(30, ge=1, le=365),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("member")),
 ):
     """Get usage data over time for charts."""
     service = AnalyticsService(db)
@@ -67,6 +70,7 @@ async def get_audit_logs(
     per_page: int = Query(50, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("member")),
 ):
     """Get audit logs for a workspace."""
     service = AnalyticsService(db)
@@ -101,6 +105,7 @@ async def get_platform_analytics(
     days: int = Query(30, ge=1, le=365),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("admin")),
 ):
     """Get platform-wide analytics. Admin only."""
     # TODO: Check admin role

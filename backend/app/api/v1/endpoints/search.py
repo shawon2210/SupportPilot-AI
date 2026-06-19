@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
+from app.core.rbac import require_role
 from app.services.document_service import DocumentService
 
 router = APIRouter()
@@ -44,6 +45,7 @@ async def search_knowledge_base(
     data: SearchRequest,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("member")),
 ):
     """
     Search the knowledge base using semantic similarity.
@@ -87,6 +89,7 @@ async def search_knowledge_base_get(
     source_id: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("member")),
 ):
     """GET version of knowledge base search (convenient for testing)."""
     service = DocumentService(db)

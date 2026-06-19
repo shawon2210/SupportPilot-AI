@@ -1,0 +1,12 @@
+# SupportPilot AI — Railway Root Config
+# Monorepo setup: API + Worker services
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy]
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 4"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
