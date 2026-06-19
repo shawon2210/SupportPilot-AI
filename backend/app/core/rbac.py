@@ -13,7 +13,9 @@ from typing import Callable
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import select
 
-from app.core.config import settings
+from app.config import get_settings
+
+settings = get_settings()
 
 from app.models.member import WorkspaceMember, WorkspaceRole
 
@@ -109,8 +111,8 @@ def require_role(minimum_role: str) -> Callable:
     ) -> dict:
         # Extract user_id from request state (set by auth middleware)
         user_id = getattr(request.state, "user_id", None)
-        if not user_id and settings.APP_ENV == "development":
-            # Dev-only fallback — NEVER in production
+        if not user_id and settings.APP_ENV in ("development", "testing"):
+            # Dev/test-only fallback — NEVER in production
             user_id = request.headers.get("X-User-ID")
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")

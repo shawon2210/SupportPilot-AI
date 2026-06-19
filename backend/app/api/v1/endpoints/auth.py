@@ -33,8 +33,9 @@ async def get_current_user(request: Request) -> dict:
     # In production: validate JWT against Clerk JWKS
     # For Phase 1: extract user info from token or use a dev header
     # Support X-User-ID header for development only — NEVER in production
-    from app.core.config import settings
-    if settings.APP_ENV == "development":
+    from app.config import get_settings
+    _settings = get_settings()
+    if _settings.APP_ENV in ("development", "testing"):
         user_id = request.headers.get("X-User-ID")
     else:
         user_id = None

@@ -21,7 +21,7 @@ def init_sentry():
     """Initialize Sentry SDK for error tracking."""
     settings = get_settings()
 
-    if not settings.SENTRY_DSN:
+    if not settings.SENTRY_DSN or "xxx" in settings.SENTRY_DSN:
         logger.info("Sentry DSN not configured — error tracking disabled")
         return
 

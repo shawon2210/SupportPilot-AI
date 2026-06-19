@@ -27,7 +27,6 @@ async def list_workspaces(
     per_page: int = Query(20, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    rbac: dict = Depends(require_role("admin")),
 ):
     """List all workspaces for the current user."""
     pagination = PaginationParams(page=page, per_page=per_page)
@@ -53,7 +52,6 @@ async def create_workspace(
     data: WorkspaceCreate,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    rbac: dict = Depends(require_role("admin")),
 ):
     """Create a new workspace. Creator becomes the owner."""
     service = WorkspaceService(db)
