@@ -136,6 +136,11 @@ async def root():
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "docs": "/docs",
+        "endpoints": {
+            "health": "/api/v1/health",
+            "openapi": "/openapi.json",
+            "adminAnalytics": "/api/v1/admin/analytics/platform",
+        },
     }
 
 

@@ -18,6 +18,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isAuthenticated, isLoading, router]);
 
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (sidebarOpen && typeof window !== "undefined" && window.innerWidth < 1024) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [sidebarOpen]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -31,15 +39,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {sidebarOpen && (
         <>
           <div className="hidden lg:block"><Sidebar /></div>
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            <div className="w-64"><Sidebar /></div>
+          <div className="lg:hidden fixed inset-0 z-[60] flex">
+            <div className="w-64 max-w-[80vw]"><Sidebar /></div>
             <div className="flex-1 bg-black/50" onClick={() => useUIStore.getState().setSidebarOpen(false)} />
           </div>
         </>
       )}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6">
           {children}
         </main>
       </div>

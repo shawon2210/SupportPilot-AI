@@ -118,7 +118,7 @@ export default function UploadPage() {
       </div>
 
       <div onDrop={handleDrop} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
-        className={cn("border-2 border-dashed rounded-lg p-6 sm:p-12 text-center transition-colors", dragOver ? "border-primary bg-primary/5" : "border-border")}>
+        className={cn("border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors", dragOver ? "border-primary bg-primary/5" : "border-border")}>
         <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <p className="text-base sm:text-lg font-medium mb-1">Drop files here or click to browse</p>
         <p className="text-sm text-muted-foreground mb-4">Supports PDF, DOCX, TXT, MD — max 25MB each</p>

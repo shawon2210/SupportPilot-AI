@@ -16,7 +16,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
       </div>
-      <div className="flex-1 flex items-center justify-center p-8 bg-background">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-background">
         <div className="w-full max-w-md">
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
             <Rocket className="h-8 w-8 text-primary" />

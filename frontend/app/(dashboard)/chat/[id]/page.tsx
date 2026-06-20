@@ -275,9 +275,9 @@ export default function ChatDetailPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-border p-2 sm:p-4">
+      <div className="border-t border-border p-2 sm:p-4 sticky bottom-0 bg-background z-10">
         <div className="flex flex-col sm:flex-row gap-2">
-          <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." rows={1} className="w-full flex-1 text-base sm:text-sm resize-none" />
+          <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." rows={1} className="w-full flex-1 text-base sm:text-sm resize-none max-h-[120px]" />
           {isStreaming ? (
             <Button onClick={handleStopGeneration} variant="outline" className="w-full sm:w-auto border-destructive text-destructive hover:bg-destructive/10">Stop</Button>
           ) : (

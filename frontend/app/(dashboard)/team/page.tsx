@@ -81,7 +81,7 @@ export default function TeamPage() {
       </div>
 
       <Dialog open={showInvite} onOpenChange={setShowInvite}>
-        <DialogContent className="max-w-sm sm:max-w-md mx-4 sm:mx-auto">
+        <DialogContent className="max-w-sm sm:max-w-md w-[calc(100%-2rem)] sm:mx-auto">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">Invite New Member</DialogTitle>
           </DialogHeader>

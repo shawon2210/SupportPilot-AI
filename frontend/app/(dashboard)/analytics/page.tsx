@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-            <SelectTrigger className="w-[140px] sm:w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="Select range" />
             </SelectTrigger>
             <SelectContent>
@@ -137,14 +137,14 @@ export default function AnalyticsPage() {
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <CardTitle className="text-lg">Usage Over Time</CardTitle>
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
             <div className="relative">
               <Filter className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Filter by date..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="pl-8 h-8 w-[180px] text-sm"
+                className="pl-8 h-8 w-full sm:w-[180px] text-sm"
               />
             </div>
           </div>

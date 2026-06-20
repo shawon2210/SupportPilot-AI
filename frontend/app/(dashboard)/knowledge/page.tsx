@@ -137,10 +137,10 @@ export default function KnowledgePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead className="hidden md:table-cell">Size</TableHead>
+                  <TableHead className="hidden sm:table-cell">Created</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -152,7 +152,7 @@ export default function KnowledgePage() {
                         {doc.name}
                       </a>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground uppercase">
+                    <TableCell className="text-sm text-muted-foreground uppercase hidden sm:table-cell">
                       {doc.source_type}
                     </TableCell>
                     <TableCell>
@@ -160,10 +160,10 @@ export default function KnowledgePage() {
                         {doc.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                       {formatBytes(doc.file_size)}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                       {formatDate(doc.created_at)}
                     </TableCell>
                     <TableCell>

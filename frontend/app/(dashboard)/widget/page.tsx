@@ -172,7 +172,7 @@ export default function WidgetPage() {
           <CardContent className="p-3 sm:p-4">
             <div className={cn("rounded-lg border-2 h-80 sm:h-96 relative overflow-hidden", config.theme === "dark" ? "bg-gray-900 border-gray-700" : "bg-gray-50 border-gray-200")}>
               <div className={cn("absolute bottom-4", config.position === "right" ? "right-4" : "left-4")}>
-                <div className="w-64 sm:w-72 rounded-xl shadow-2xl overflow-hidden" style={{ borderColor: config.primary_color + "40" }}>
+                <div className="w-full max-w-[256px] sm:max-w-[288px] mx-auto rounded-xl shadow-2xl overflow-hidden" style={{ borderColor: config.primary_color + "40" }}>
                   <div className="px-4 py-3 text-white text-sm font-medium" style={{ backgroundColor: config.primary_color }}>
                     {config.greeting_message}
                   </div>

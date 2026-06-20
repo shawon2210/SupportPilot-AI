@@ -20,6 +20,7 @@ from app.models.audit_log import AuditLog
 from app.models.chat import Chat
 from app.models.knowledge_source import KnowledgeSource
 from app.models.message import Message
+from app.models.subscription import Subscription, SubscriptionStatus
 from app.models.usage_metric import UsageMetric
 from app.models.user import User
 from app.models.workspace import Workspace
@@ -196,6 +197,19 @@ class AnalyticsService:
             Workspace, Workspace.created_at >= start_date,
         )
 
+        # Active subscriptions
+        active_subscriptions = await self._count(
+            Subscription,
+            Subscription.status.in_([
+                SubscriptionStatus.ACTIVE,
+                SubscriptionStatus.TRIALING,
+                SubscriptionStatus.PAST_DUE,
+            ]),
+        )
+
+        # Revenue is not stored in the current schema; keep the admin metric explicit.
+        total_revenue = 0.0
+
         return {
             "period_days": days,
             "total_workspaces": total_workspaces,
@@ -203,6 +217,8 @@ class AnalyticsService:
             "messages_sent": messages_count,
             "plan_distribution": plan_dist,
             "recent_signups": recent_signups,
+            "active_subscriptions": active_subscriptions,
+            "total_revenue": total_revenue,
         }
 
     # ── Audit Log Querying ─────────────────────────────────────────

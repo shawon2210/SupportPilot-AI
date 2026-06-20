@@ -84,7 +84,7 @@ export default function ChatListPage() {
     : chats;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 p-2 sm:p-4">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
@@ -203,7 +203,7 @@ export default function ChatListPage() {
 
       {/* Create Chat Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-sm sm:max-w-md mx-4 sm:mx-auto">
+        <DialogContent className="max-w-sm sm:max-w-md w-[calc(100%-2rem)] sm:mx-auto">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">New Chat</DialogTitle>
             <DialogDescription className="text-sm sm:text-base">
