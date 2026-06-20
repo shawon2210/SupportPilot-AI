@@ -16,8 +16,15 @@ from app.config import get_settings
 
 settings = get_settings()
 
+# Ensure we use asyncpg driver (never psycopg2) to avoid needing psycopg2-binary
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+elif db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    db_url,
     echo=settings.DATABASE_ECHO,
     pool_pre_ping=True,
 )
