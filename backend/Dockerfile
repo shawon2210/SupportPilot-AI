@@ -16,6 +16,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
+# CACHE_BUST: 2026-06-20-01
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
