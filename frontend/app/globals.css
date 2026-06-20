@@ -33,6 +33,19 @@
   --chart-3: 38 92% 50%;
   --chart-4: 0 84% 60%;
   --chart-5: 262 83% 58%;
+
+  /* Z-Index Scale */
+  --z-base: 0;
+  --z-content: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+  --z-sidebar: 40;
+  --z-header: 50;
+  --z-dropdown: 60;
+  --z-modal: 70;
+  --z-popover: 80;
+  --z-toast: 90;
+  --z-tooltip: 100;
 }
 
 /* ─── Dark Theme ────────────────────────────────────────────── */
@@ -79,15 +92,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  /* Mobile viewport fix */
   html, body {
     height: 100%;
     overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
   /* Focus visible */
@@ -113,6 +125,13 @@
     -webkit-text-fill-color: hsl(var(--foreground));
     transition: background-color 5000s ease-in-out 0s;
   }
+
+  /* Smooth scrolling */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
 }
 
 /* ─── Component Utilities ───────────────────────────────────── */
@@ -122,16 +141,51 @@
     -webkit-backdrop-filter: blur(12px) saturate(180%);
   }
 
+  .glass-strong {
+    backdrop-filter: blur(20px) saturate(200%);
+    -webkit-backdrop-filter: blur(20px) saturate(200%);
+  }
+
   .card-hover {
     @apply transition-all duration-200;
   }
   .card-hover:hover {
-    @apply border-primary/30 shadow-sm;
+    @apply border-primary/30 shadow-md shadow-primary/5;
+  }
+
+  .card-interactive {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+  .card-interactive:hover {
+    @apply border-primary/40 shadow-lg shadow-primary/5 -translate-y-0.5;
+  }
+  .card-interactive:active {
+    @apply scale-[0.98] translate-y-0;
   }
 
   .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto px-3 sm:px-6;
   }
+
+  .section-spacing {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
+  }
+
+  /* Stat card gradient overlays */
+  .stat-card-blue { @apply bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-500/20; }
+  .stat-card-green { @apply bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-500/20; }
+  .stat-card-purple { @apply bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20; }
+  .stat-card-orange { @apply bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20; }
+  .stat-card-pink { @apply bg-gradient-to-br from-pink-500/10 to-pink-600/5 border-pink-500/20; }
+  .stat-card-cyan { @apply bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 border-cyan-500/20; }
 }
 
 /* ─── Custom Utilities ──────────────────────────────────────── */
@@ -166,6 +220,88 @@
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
+
+  /* Z-index utilities */
+  .z-base { z-index: var(--z-base); }
+  .z-content { z-index: var(--z-content); }
+  .z-sticky { z-index: var(--z-sticky); }
+  .z-overlay { z-index: var(--z-overlay); }
+  .z-sidebar { z-index: var(--z-sidebar); }
+  .z-header { z-index: var(--z-header); }
+  .z-dropdown { z-index: var(--z-dropdown); }
+  .z-modal { z-index: var(--z-modal); }
+  .z-popover { z-index: var(--z-popover); }
+  .z-toast { z-index: var(--z-toast); }
+  .z-tooltip { z-index: var(--z-tooltip); }
+}
+
+/* ─── Animations ────────────────────────────────────────────── */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.15s ease-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  .animate-slide-down {
+    animation: slideDown 0.2s ease-out;
+  }
+  .animate-slide-left {
+    animation: slideLeft 0.2s ease-out;
+  }
+  .animate-pulse-subtle {
+    animation: pulseSubtle 2s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ─── Skeleton Shimmer ──────────────────────────────────────── */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted) / 0.3) 25%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted) / 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ─── Prose / Typography ────────────────────────────────────── */
@@ -224,10 +360,14 @@
 
 /* ─── Touch Device Hover Fix ────────────────────────────────── */
 @media (hover: none) and (pointer: coarse) {
-  .touch-hover\:opacity-100 {
+  .touch-hover\\:opacity-100 {
     opacity: 1 !important;
   }
-  .touch-hover\:flex {
+  .touch-hover\\:flex {
     display: flex !important;
+  }
+  /* Always show action buttons on touch devices */
+  .group-hover\\:opacity-100 {
+    opacity: 1 !important;
   }
 }

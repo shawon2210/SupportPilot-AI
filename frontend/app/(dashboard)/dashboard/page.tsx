@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
   if (isError && !data) {
     return (
-      <div className="space-y-6 px-4 sm:px-6">
+      <div className="space-y-4 sm:space-y-6">
         <ErrorState
           title="Failed to load dashboard"
           message="We couldn't load your dashboard. Please try again."
@@ -74,39 +74,38 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 px-4 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            Dashboard
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-primary flex-shrink-0" />
+            <span className="truncate">Dashboard</span>
           </h1>
-          <p className="text-muted-foreground mt-1">Overview of your AI support workspace</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">Overview of your AI support workspace</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
+        <Button variant="outline" size="sm" onClick={() => refetch()} className="shrink-0">
           <RefreshCw className="h-4 w-4 mr-1" />
-          Refresh
+          <span className="hidden sm:inline">Refresh</span>
         </Button>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((card) => (
-          <Card key={card.key}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">{card.label}</CardTitle>
-              <div className={`p-2 rounded-md ${card.bg}`}>
-                <card.icon className={`h-4 w-4 ${card.color}`} />
+          <Card key={card.key} className="min-w-0">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 p-3 sm:p-4">
+              <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground truncate">{card.label}</CardTitle>
+              <div className={`p-1.5 sm:p-2 rounded-md ${card.bg} shrink-0`}>
+                <card.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${card.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-4 pt-0">
               {isLoading ? (
-                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-5 w-12 sm:h-8 sm:w-16" />
               ) : (
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold">{formatNumber(stats[card.key])}</p>
-                  <Badge variant="secondary" className="text-[10px]">
-                    <TrendingUp className="h-3 w-3 mr-0.5" />
+                <div className="flex items-baseline gap-1 sm:gap-2">
+                  <p className="text-lg sm:text-2xl font-bold truncate">{formatNumber(stats[card.key])}</p>
+                  <Badge variant="secondary" className="text-[8px] sm:text-[10px] hidden xs:inline-flex">
+                    <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" />
                     Live
                   </Badge>
                 </div>
@@ -116,26 +115,23 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4">
             <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <div className="relative">
-              <Input
-                placeholder="Search activity..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-8 w-full sm:w-[180px] text-sm"
-              />
-            </div>
+            <Input
+              placeholder="Search activity..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 w-full sm:w-[180px] text-sm"
+            />
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-4 space-y-3">
+              <div className="p-3 sm:p-4 space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-7 w-7 sm:h-8 sm:w-8 rounded-full" />
                     <div className="flex-1 space-y-1">
                       <Skeleton className="h-3 w-3/4" />
                       <Skeleton className="h-2 w-1/2" />
@@ -145,7 +141,7 @@ export default function DashboardPage() {
               </div>
             ) : filteredActivity.length === 0 ? (
               <EmptyState
-                icon={<AlertTriangle className="h-10 w-10" />}
+                icon={<AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10" />}
                 title="No activity found"
                 description={
                   searchQuery
@@ -156,19 +152,17 @@ export default function DashboardPage() {
               />
             ) : (
               <>
-                {/* Mobile: Card layout */}
-                <div className="sm:hidden space-y-2">
+                <div className="sm:hidden divide-y divide-border">
                   {filteredActivity.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border border-border/50">
-                      <Badge variant="outline" className="text-[10px] capitalize flex-shrink-0">{item.type}</Badge>
-                      <span className="text-sm truncate flex-1">{item.message}</span>
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{item.time}</span>
+                    <div key={item.id} className="flex items-center gap-2 p-3">
+                      <Badge variant="outline" className="text-[9px] capitalize flex-shrink-0 px-1.5 py-0.5">{item.type}</Badge>
+                      <span className="text-xs truncate flex-1 min-w-0">{item.message}</span>
+                      <span className="text-[9px] text-muted-foreground whitespace-nowrap flex-shrink-0">{item.time}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* Desktop: Table layout */}
-                <div className="hidden sm:block">
+                <div className="hidden sm:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -196,24 +190,23 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-3 sm:p-4">
             <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {quickActions.map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="flex flex-col gap-1 p-4 rounded-md border border-border hover:bg-accent hover:border-primary/50 transition-colors group"
+                  className="flex flex-col gap-1 p-3 sm:p-4 rounded-lg border border-border hover:bg-accent hover:border-primary/50 transition-colors group min-w-0"
                 >
                   <div className="flex items-center gap-2">
-                    <action.icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">{action.label}</span>
+                    <action.icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform shrink-0" />
+                    <span className="text-xs sm:text-sm font-medium truncate">{action.label}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{action.desc}</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{action.desc}</span>
                 </Link>
               ))}
             </div>

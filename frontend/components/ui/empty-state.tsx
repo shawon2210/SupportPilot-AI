@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle, Inbox, Search, RefreshCw } from "lucide-react";
 
 interface EmptyStateAction {
   label: string;
@@ -26,41 +27,76 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         role="status"
         aria-live="polite"
         className={cn(
-          "flex flex-col items-center justify-center text-center py-12 px-6 rounded-lg border border-dashed border-border",
+          "flex flex-col items-center justify-center text-center py-10 sm:py-14 px-6 rounded-xl border border-dashed border-border/60 bg-muted/10",
           className
         )}
       >
         {icon && (
-          <div className="mb-4 text-muted-foreground" aria-hidden="true">
+          <div className="mb-4 h-14 w-14 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground" aria-hidden="true">
             {icon}
           </div>
         )}
-        <h3 className="text-lg font-medium mb-2">{title}</h3>
+        <h3 className="text-base sm:text-lg font-semibold mb-1.5">{title}</h3>
         {description && (
-          <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+          <p className="text-sm text-muted-foreground mb-5 max-w-xs leading-relaxed">
             {description}
           </p>
         )}
-        {action &&
-          (action.href ? (
-            <a
-              href={action.href}
-              className={cn(
-                "inline-flex items-center justify-center px-4 py-2 rounded-md",
-                "bg-primary text-primary-foreground text-sm font-medium",
-                "hover:bg-primary/90 transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              )}
-            >
-              {action.label}
-            </a>
+        {action && (
+          action.href ? (
+            <Button asChild size="sm" className="h-9">
+              <a href={action.href}>{action.label}</a>
+            </Button>
           ) : (
-            <Button onClick={action.onClick}>{action.label}</Button>
-          ))}
+            <Button onClick={action.onClick} size="sm" className="h-9">
+              {action.label}
+            </Button>
+          )
+        )}
       </div>
     );
   }
 );
 EmptyState.displayName = "EmptyState";
 
-export { EmptyState };
+interface ErrorStateProps {
+  title: string;
+  message?: string;
+  onRetry?: () => void;
+  className?: string;
+}
+
+const ErrorState = React.forwardRef<HTMLDivElement, ErrorStateProps>(
+  ({ title, message, onRetry, className }, ref) => {
+    return (
+      <div
+        ref={ref}
+        role="alert"
+        aria-live="assertive"
+        className={cn(
+          "flex flex-col items-center justify-center text-center py-10 sm:py-14 px-6 rounded-xl border border-destructive/20 bg-destructive/5",
+          className
+        )}
+      >
+        <div className="mb-4 h-14 w-14 rounded-2xl bg-destructive/10 flex items-center justify-center" aria-hidden="true">
+          <AlertTriangle className="h-7 w-7 text-destructive" />
+        </div>
+        <h3 className="text-base sm:text-lg font-semibold mb-1.5">{title}</h3>
+        {message && (
+          <p className="text-sm text-muted-foreground mb-5 max-w-xs leading-relaxed">
+            {message}
+          </p>
+        )}
+        {onRetry && (
+          <Button onClick={onRetry} variant="outline" size="sm" className="h-9">
+            <RefreshCw className="h-3.5 w-3.5 mr-2" />
+            Try Again
+          </Button>
+        )}
+      </div>
+    );
+  }
+);
+ErrorState.displayName = "ErrorState";
+
+export { EmptyState, ErrorState };

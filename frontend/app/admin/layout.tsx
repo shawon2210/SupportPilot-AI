@@ -5,16 +5,25 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { useUIStore } from "@/stores";
+import { cn } from "@/lib/utils";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { sidebarOpen, sidebarCollapsed, setSidebarOpen } = useUIStore();
 
   useEffect(() => {
-    useUIStore.getState().setSidebarOpen(false);
-  }, [pathname]);
+    setSidebarOpen(false);
+  }, [pathname, setSidebarOpen]);
 
-  // Auto-close sidebar on mobile
+  useEffect(() => {
+    if (sidebarOpen && typeof window !== "undefined" && window.innerWidth < 1024) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [sidebarOpen]);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
@@ -30,16 +39,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen h-dvh overflow-hidden bg-background">
-      {/* Desktop sidebar */}
       <div
-        className={`hidden lg:flex flex-col transition-all duration-300 ${
-          sidebarOpen ? "w-[260px]" : "w-0"
-        }`}
+        className={cn(
+          "hidden lg:flex flex-col transition-all duration-300",
+          sidebarOpen ? (sidebarCollapsed ? "w-[72px]" : "w-[260px]") : "w-0"
+        )}
       >
         {sidebarOpen && <Sidebar />}
       </div>
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-overlay flex">
           <div className="w-64 max-w-[80vw] h-full">
@@ -52,9 +60,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header />
-        <main className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 safe-bottom">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 safe-bottom">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, Rocket, User, Check } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores";
@@ -56,14 +56,15 @@ export default function SignUpPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="w-full max-w-md mx-auto space-y-6 animate-fade-in">
         <div className="text-center space-y-2">
-          <Skeleton className="h-8 w-64 mx-auto" />
+          <Skeleton className="h-14 w-14 rounded-2xl mx-auto" />
+          <Skeleton className="h-7 w-64 mx-auto" />
           <Skeleton className="h-4 w-72 mx-auto" />
         </div>
-        <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-          <CardContent className="p-0 sm:p-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Card>
+          <CardContent className="p-5 sm:p-6 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
             </div>
@@ -78,84 +79,89 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create your account</h1>
-        <p className="text-muted-foreground">Start your free trial — no credit card required</p>
+    <div className="w-full max-w-md mx-auto space-y-6 animate-fade-in">
+      {/* Logo / Brand */}
+      <div className="text-center space-y-3">
+        <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 items-center justify-center shadow-lg shadow-primary/20">
+          <Rocket className="h-7 w-7 text-primary-foreground" />
+        </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create your account</h1>
+          <p className="text-sm text-muted-foreground mt-1">Start your free trial — no credit card required</p>
+        </div>
       </div>
 
-      <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-        <CardContent className="p-0 sm:p-6">
+      <Card className="shadow-sm">
+        <CardContent className="p-5 sm:p-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField control={form.control} name="first_name" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel className="text-sm">First Name</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input {...field} placeholder="John" className="pl-10 h-11" />
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="last_name" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel className="text-sm">Last Name</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Doe" className="h-11" />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs" />
                   </FormItem>
                 )} />
               </div>
 
               <FormField control={form.control} name="email" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel className="text-sm">Email</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input {...field} type="email" placeholder="you@company.com" className="pl-10 h-11" />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )} />
 
               <FormField control={form.control} name="password" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-sm">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input {...field} type={showPw ? "text" : "password"} placeholder="Min 8 characters" className="pl-10 pr-10 h-11" />
-                      <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-0.5">
                         {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )} />
 
               <FormField control={form.control} name="confirm_password" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel className="text-sm">Confirm Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input {...field} type={showPw ? "text" : "password"} placeholder="Repeat password" className="pl-10 h-11" />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs" />
                 </FormItem>
               )} />
 
-              <Button type="submit" className="w-full h-11" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full h-11 text-sm" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : (
@@ -168,7 +174,7 @@ export default function SignUpPage() {
             </form>
           </Form>
 
-          <div className="relative my-6">
+          <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
@@ -177,7 +183,7 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full h-11" type="button">
+          <Button variant="outline" className="w-full h-11 text-sm" type="button">
             <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -190,7 +196,7 @@ export default function SignUpPage() {
       </Card>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
+        Already have an account?{" "}
         <Link href="/sign-in" className="text-primary hover:underline font-medium">
           Sign in
           <ArrowRight className="inline h-3 w-3 ml-1" />
