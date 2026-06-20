@@ -14,7 +14,7 @@ import {
   MessageSquare,
   PieChart,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -94,8 +94,10 @@ export default function AdminPage() {
 
       {isError && (
         <ErrorState
-          title="Failed to load platform analytics"
-          message={(error as Error)?.message || "The admin API could not be reached."}
+          title="Platform admin access required"
+          message={(error as ApiError)?.status === 403
+            ? "Sign in with a configured platform admin account to view these metrics."
+            : (error as Error)?.message || "The admin API could not be reached."}
           onRetry={() => refetch()}
         />
       )}

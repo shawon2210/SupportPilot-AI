@@ -113,6 +113,9 @@ class Settings(BaseSettings):
     # ── CORS ───────────────────────────────────────────────────
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
+    # ── Platform Admin ─────────────────────────────────────────
+    PLATFORM_ADMIN_USER_IDS: list[str] = []
+
     # ── Rate Limiting ──────────────────────────────────────────
     RATE_LIMIT_PER_MINUTE: int = 60
 
@@ -150,6 +153,13 @@ class Settings(BaseSettings):
             except (json.JSONDecodeError, ValueError):
                 pass
             return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
+    @field_validator("PLATFORM_ADMIN_USER_IDS", mode="before")
+    @classmethod
+    def parse_platform_admin_user_ids(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [user_id.strip() for user_id in v.split(",") if user_id.strip()]
         return v
 
     # ── Computed Properties ────────────────────────────────────

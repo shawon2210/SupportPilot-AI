@@ -27,7 +27,7 @@ Since the Railway CLI cannot authenticate from WSL, deploy manually via the dash
 
 ```
 APP_ENV=production
-SECRET_KEY=cf5b6d2a940b81134093d5486111b50a89532972feee701a403f1c6551b68ea4
+SECRET_KEY=<replace-with-a-unique-railway-secret>
 AI_PROVIDER=openrouter
 OPENROUTER_API_KEY=<your-key>
 CORS_ORIGINS=["https://your-frontend.vercel.app"]

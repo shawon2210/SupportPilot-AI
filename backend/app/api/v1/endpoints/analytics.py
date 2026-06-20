@@ -5,7 +5,7 @@ Dashboard analytics and audit log access.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
@@ -101,26 +101,23 @@ async def get_audit_logs(
 
 # ── Platform Analytics (Admin) ────────────────────────────────────
 
-async def get_platform_admin_user(request: Request) -> dict:
-    """Allow the admin panel to load in development while preserving auth in production."""
+async def require_platform_admin(request: Request) -> dict:
+    """Require an authenticated user explicitly configured as a platform admin."""
+    current_user = await get_current_user(request)
     settings = get_settings()
-    if settings.APP_ENV in ("development", "testing"):
-        return {
-            "id": request.headers.get("X-User-ID", "dev-admin"),
-            "email": request.headers.get("X-User-Email", "admin@supportpilot.local"),
-            "role": "admin",
-        }
+    if current_user.get("id") in settings.PLATFORM_ADMIN_USER_IDS:
+        return {**current_user, "platform_admin": True}
 
-    return await get_current_user(request)
+    raise HTTPException(status_code=403, detail="Platform admin access required")
 
 
 @router.get("/admin/analytics/platform")
 async def get_platform_analytics(
     days: int = Query(30, ge=1, le=365),
-    current_user: dict = Depends(get_platform_admin_user),
+    current_user: dict = Depends(require_platform_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get platform-wide analytics. Admin only in production."""
+    """Get platform-wide analytics for configured platform admins only."""
     service = AnalyticsService(db)
     data = await service.get_platform_analytics(days=days)
     return {"success": True, "data": data}
