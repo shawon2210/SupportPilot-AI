@@ -39,18 +39,6 @@ export default function TeamPage() {
     },
   });
 
-  if (isError) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <ErrorState
-          title="Failed to load team"
-          message={(error as Error)?.message || "An unexpected error occurred"}
-          onRetry={refetch}
-        />
-      </div>
-    );
-  }
-
   const inviteMutation = useMutation({
     mutationFn: async () => api.post(`/workspaces/${wsId}/members`, { email: inviteEmail, role: inviteRole }),
     onSuccess: () => { toast.success("Member invited"); setShowInvite(false); setInviteEmail(""); refetch(); },
@@ -67,6 +55,18 @@ export default function TeamPage() {
     mutationFn: async (memberId: string) => api.delete(`/workspaces/${wsId}/members/${memberId}`),
     onSuccess: () => refetch(),
   });
+
+  if (isError) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <ErrorState
+          title="Failed to load team"
+          message={(error as Error)?.message || "An unexpected error occurred"}
+          onRetry={refetch}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 p-2 sm:p-4">
