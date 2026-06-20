@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy import text
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import get_settings
@@ -49,6 +50,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Create all tables. Used during application startup."""
     async with engine.begin() as conn:
+        # Enable pgvector extension (no-op on SQLite)
+        try:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        except Exception:
+            pass  # SQLite doesn't support extensions
         await conn.run_sync(Base.metadata.create_all)
 
 
