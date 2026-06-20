@@ -86,7 +86,6 @@ async def update_workspace(
     rbac: dict = Depends(require_role("admin")),
 ):
     """Update workspace details. Requires admin role."""
-    # TODO: Add RBAC check
     service = WorkspaceService(db)
     workspace = await service.update_workspace(workspace_id, data)
     return WorkspaceResponse.model_validate(workspace)
@@ -100,6 +99,5 @@ async def delete_workspace(
     rbac: dict = Depends(require_role("admin")),
 ):
     """Delete a workspace. Requires owner role."""
-    # TODO: Add RBAC check
     service = WorkspaceService(db)
     await service.delete_workspace(workspace_id)

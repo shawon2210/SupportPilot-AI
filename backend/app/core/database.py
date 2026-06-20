@@ -23,11 +23,21 @@ if db_url.startswith("postgresql://"):
 elif db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
 
-engine = create_async_engine(
-    db_url,
-    echo=settings.DATABASE_ECHO,
-    pool_pre_ping=True,
-)
+# Pool settings — only applicable for PostgreSQL (SQLite uses NullPool)
+_is_postgres = "postgresql" in db_url
+_engine_kwargs: dict = {
+    "echo": settings.DATABASE_ECHO,
+    "pool_pre_ping": True,
+}
+if _is_postgres:
+    _engine_kwargs.update({
+        "pool_size": 20,
+        "max_overflow": 10,
+        "pool_timeout": 30,
+        "pool_recycle": 1800,
+    })
+
+engine = create_async_engine(db_url, **_engine_kwargs)
 
 async_session_factory = async_sessionmaker(
     engine,
