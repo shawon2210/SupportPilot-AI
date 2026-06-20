@@ -155,27 +155,43 @@ export default function DashboardPage() {
                 action={searchQuery ? { label: "Clear search", onClick: () => setSearchQuery("") } : undefined}
               />
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead className="text-right">Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile: Card layout */}
+                <div className="sm:hidden space-y-2">
                   {filteredActivity.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px] capitalize">{item.type}</Badge>
-                          <span className="text-sm truncate">{item.message}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">{item.time}</TableCell>
-                    </TableRow>
+                    <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border border-border/50">
+                      <Badge variant="outline" className="text-[10px] capitalize flex-shrink-0">{item.type}</Badge>
+                      <span className="text-sm truncate flex-1">{item.message}</span>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{item.time}</span>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Desktop: Table layout */}
+                <div className="hidden sm:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Event</TableHead>
+                        <TableHead className="text-right">Time</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredActivity.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-[10px] capitalize">{item.type}</Badge>
+                              <span className="text-sm truncate">{item.message}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">{item.time}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

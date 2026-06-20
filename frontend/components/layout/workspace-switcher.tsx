@@ -25,8 +25,8 @@ export function WorkspaceSwitcher() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg z-50 py-1 max-h-64 overflow-y-auto max-w-full">
+          <div className="fixed inset-0 z-overlay" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg z-popover py-1 max-h-64 overflow-y-auto">
             {workspaces.map((ws) => (
               <button key={ws.id} onClick={() => { setCurrentWorkspace(ws); setOpen(false); }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-accent">

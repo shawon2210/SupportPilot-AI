@@ -8,6 +8,8 @@ import { useWorkspaceStore } from "@/stores";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface SearchResult {
   chunk_id: string;
@@ -86,14 +88,11 @@ export default function SearchPage() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your knowledge base..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()} />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your knowledge base..." className="pl-10 h-9 sm:h-10" onKeyDown={(e) => e.key === "Enter" && handleSearch()} />
         </div>
-        <button onClick={handleSearch} disabled={!query.trim()}
-          className="px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 w-full sm:w-auto">
+        <Button onClick={handleSearch} disabled={!query.trim()} className="h-9 sm:h-10 w-full sm:w-auto">
           Search
-        </button>
+        </Button>
       </div>
 
       <div className="flex items-center gap-3">

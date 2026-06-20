@@ -183,7 +183,7 @@ export default function ChatListPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="opacity-0 group-hover:opacity-100 shrink-0 h-8 w-8 sm:h-9 sm:w-9"
+                    className="shrink-0 h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-destructive opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (confirm("Delete this chat?")) {

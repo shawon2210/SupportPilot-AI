@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-            <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px] h-9 sm:h-10">
               <SelectValue placeholder="Select range" />
             </SelectTrigger>
             <SelectContent>
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
               <SelectItem value="90">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={() => { refetchOverview(); refetchUsage(); }}>
+          <Button variant="outline" size="sm" onClick={() => { refetchOverview(); refetchUsage(); }} className="h-9 sm:h-10">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>

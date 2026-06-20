@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 function WebsiteListSkeleton() {
   return (
@@ -71,19 +73,16 @@ export default function WebsitesPage() {
       <div className="rounded-lg border border-border bg-card p-4 sm:p-6 space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1.5">Website URL</label>
-          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/docs"
-            className="w-full px-3 sm:px-4 py-2.5 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/docs" />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1.5">Max Pages: {maxPages}</label>
-          <input type="range" min={1} max={500} value={maxPages} onChange={(e) => setMaxPages(Number(e.target.value))}
-            className="w-full accent-primary" />
+          <input type="range" min={1} max={500} value={maxPages} onChange={(e) => setMaxPages(Number(e.target.value))} className="w-full accent-primary" />
         </div>
-        <button onClick={() => ingestMutation.mutate()} disabled={!url || ingestMutation.isPending}
-          className="w-full sm:w-auto px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
-          {ingestMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+        <Button onClick={() => ingestMutation.mutate()} disabled={!url || ingestMutation.isPending} className="w-full sm:w-auto">
+          {ingestMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Globe className="h-4 w-4 mr-2" />}
           Start Crawling
-        </button>
+        </Button>
       </div>
 
       {isLoading && <WebsiteListSkeleton />}

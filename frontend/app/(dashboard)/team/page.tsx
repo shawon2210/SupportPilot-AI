@@ -1,7 +1,8 @@
 "use client";
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Users } from "lucide-react";
+import { Plus, Trash2, Users, MoreVertical } from "lucide-react";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
 import { cn, formatDate, getRoleBadgeColor, getInitials } from "@/lib/utils";
@@ -69,7 +70,8 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 p-2 sm:p-4">
+    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-4">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Team</h1>
@@ -80,6 +82,7 @@ export default function TeamPage() {
         </Button>
       </div>
 
+      {/* Invite Dialog */}
       <Dialog open={showInvite} onOpenChange={setShowInvite}>
         <DialogContent className="max-w-sm sm:max-w-md w-[calc(100%-2rem)] sm:mx-auto">
           <DialogHeader>
@@ -111,6 +114,7 @@ export default function TeamPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Loading */}
       {isLoading ? (
         <Card>
           <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
@@ -125,56 +129,105 @@ export default function TeamPage() {
           action={{ label: "Invite Member", onClick: () => setShowInvite(true) }}
         />
       ) : (
-        <Card className="overflow-x-auto">
-          <div className="min-w-[500px] sm:min-w-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs sm:text-sm">Member</TableHead>
-                  <TableHead className="text-xs sm:text-sm">Role</TableHead>
-                  <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Joined</TableHead>
-                  <TableHead className="w-10"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(members || []).map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                          <AvatarFallback className="text-xs">{getInitials(m.user_name || m.user_email)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-xs sm:text-sm font-medium">{m.user_name || m.user_email}</p>
-                          {m.user_email && <p className="text-xs text-muted-foreground hidden sm:block">{m.user_email}</p>}
-                        </div>
+        <>
+          {/* Mobile: Card layout */}
+          <div className="sm:hidden space-y-2">
+            {(members || []).map((m) => (
+              <Card key={m.id}>
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9 flex-shrink-0">
+                      <AvatarFallback className="text-xs">{getInitials(m.user_name || m.user_email)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{m.user_name || m.user_email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{m.user_email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Select value={m.role} onValueChange={(role) => updateRoleMutation.mutate({ memberId: m.id, role })}>
+                          <SelectTrigger className={cn("h-6 w-20 text-[10px] px-2", getRoleBadgeColor(m.role))}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="agent">Agent</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="owner">Owner</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <span className="text-[10px] text-muted-foreground">{formatDate(m.joined_at)}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Select value={m.role} onValueChange={(role) => updateRoleMutation.mutate({ memberId: m.id, role })}>
-                        <SelectTrigger className={cn("w-24 sm:w-28 text-xs", getRoleBadgeColor(m.role))}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="member">Member</SelectItem>
-                          <SelectItem value="agent">Agent</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="owner">Owner</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm text-muted-foreground hidden sm:table-cell">{formatDate(m.joined_at)}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => removeMutation.mutate(m.id)} className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeMutation.mutate(m.id)}
+                      className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </Card>
+
+          {/* Desktop: Table layout */}
+          <div className="hidden sm:block">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(members || []).map((m) => (
+                    <TableRow key={m.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="text-xs">{getInitials(m.user_name || m.user_email)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{m.user_name || m.user_email}</p>
+                            {m.user_email && <p className="text-xs text-muted-foreground">{m.user_email}</p>}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select value={m.role} onValueChange={(role) => updateRoleMutation.mutate({ memberId: m.id, role })}>
+                          <SelectTrigger className={cn("w-28 text-xs", getRoleBadgeColor(m.role))}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="agent">Agent</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="owner">Owner</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatDate(m.joined_at)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeMutation.mutate(m.id)}
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,12 +1,13 @@
 "use client";
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { Upload, Globe, Search, FileText, Trash2 } from "lucide-react";
+import { Upload, Globe, Search, FileText, Trash2, MoreVertical, Calendar, HardDrive } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn, formatDate, formatBytes, getStatusColor } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -42,12 +43,8 @@ export default function KnowledgePage() {
 
   if (isError) {
     return (
-      <div className="px-4 sm:px-6">
-        <ErrorState
-          title="Failed to load documents"
-          message={(error as Error)?.message || "An unexpected error occurred"}
-          onRetry={refetch}
-        />
+      <div className="page-container py-6">
+        <ErrorState title="Failed to load documents" message={(error as Error)?.message || "An unexpected error occurred"} onRetry={refetch} />
       </div>
     );
   }
@@ -56,40 +53,37 @@ export default function KnowledgePage() {
   const filtered = documents.filter((d) => !search || d.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6 px-4 sm:px-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-fade-in">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Knowledge Base</h1>
-          <p className="text-muted-foreground">Manage your documents and knowledge sources</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Knowledge Base</h1>
+          <p className="text-sm text-muted-foreground">Manage your documents and knowledge sources</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Link href="/knowledge/websites">
-            <Button variant="outline">
+          <Link href="/knowledge/websites" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Globe className="h-4 w-4 mr-2" />
               Add Website
             </Button>
           </Link>
-          <Link href="/knowledge/upload">
-            <Button>
+          <Link href="/knowledge/upload" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto">
               <Upload className="h-4 w-4 mr-2" />
-              Upload Document
+              Upload
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full max-w-full sm:max-w-sm">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search documents..."
-            className="pl-10"
-          />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search documents..." className="pl-10" />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-full sm:w-[160px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -102,7 +96,7 @@ export default function KnowledgePage() {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[160px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
@@ -115,14 +109,15 @@ export default function KnowledgePage() {
         </Select>
       </div>
 
+      {/* Content */}
       {isLoading ? (
         <div className="space-y-3">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-8 sm:py-12">
+        <div className="py-12">
           <EmptyState
             icon={<FileText className="h-12 w-12" />}
             title="No documents yet"
@@ -131,59 +126,86 @@ export default function KnowledgePage() {
           />
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden sm:table-cell">Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Size</TableHead>
-                  <TableHead className="hidden sm:table-cell">Created</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell>
-                      <a href={`/knowledge/${doc.id}`} className="text-sm font-medium hover:text-primary">
+        <>
+          {/* Mobile: Card layout */}
+          <div className="sm:hidden space-y-2">
+            {filtered.map((doc) => (
+              <Card key={doc.id} className="card-hover">
+                <CardContent className="p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <a href={`/knowledge/${doc.id}`} className="text-sm font-medium hover:text-primary line-clamp-1">
                         {doc.name}
                       </a>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground uppercase hidden sm:table-cell">
-                      {doc.source_type}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn(getStatusColor(doc.status))} variant="outline">
-                        {doc.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                      {formatBytes(doc.file_size)}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
-                      {formatDate(doc.created_at)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={async () => {
-                          await api.delete(`/workspaces/${wsId}/documents/${doc.id}`);
-                          refetch();
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                      </Button>
-                    </TableCell>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={cn(getStatusColor(doc.status), "text-[10px]")} variant="outline">
+                          {doc.status}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground uppercase">{doc.source_type}</span>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
+                        {doc.file_size && <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />{formatBytes(doc.file_size)}</span>}
+                        {doc.created_at && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(doc.created_at)}</span>}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 flex-shrink-0"
+                      onClick={async () => { await api.delete(`/workspaces/${wsId}/documents/${doc.id}`); refetch(); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop: Table layout */}
+          <div className="hidden sm:block">
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((doc) => (
+                    <TableRow key={doc.id} className="group">
+                      <TableCell>
+                        <a href={`/knowledge/${doc.id}`} className="text-sm font-medium hover:text-primary">
+                          {doc.name}
+                        </a>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground uppercase">{doc.source_type}</TableCell>
+                      <TableCell>
+                        <Badge className={cn(getStatusColor(doc.status))} variant="outline">{doc.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatBytes(doc.file_size)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{formatDate(doc.created_at)}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={async () => { await api.delete(`/workspaces/${wsId}/documents/${doc.id}`); refetch(); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+        </>
       )}
     </div>
   );
