@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { PageTransition, StaggerContainer, StaggerItem } from "@/components/shared/page-transition";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
@@ -98,7 +99,7 @@ export default function DashboardPage() {
   if (teamInvited) progress += 25;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <PageTransition className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
@@ -215,9 +216,10 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+      <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((card) => (
-          <Card key={card.key} className={cn("min-w-0 transition-all duration-300 card-hover hover:-translate-y-0.5", card.cardClass)}>
+          <StaggerItem key={card.key}>
+            <Card className={cn("min-w-0 transition-all duration-300 card-hover card-glow hover:-translate-y-0.5", card.cardClass)}>
             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 p-3 sm:p-4">
               <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground truncate">{card.label}</CardTitle>
               <div className={`p-1.5 sm:p-2 rounded-md ${card.bg} shrink-0`}>
@@ -237,9 +239,10 @@ export default function DashboardPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
+            </Card>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerContainer>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <Card>
@@ -339,6 +342,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageTransition>
   );
 }

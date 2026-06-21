@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/header";
 import { useUIStore, useAuthStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, MessageSquare, BookOpen, Settings } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -66,24 +67,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {sidebarOpen && <Sidebar />}
       </div>
 
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-overlay flex">
-          <div className="w-64 max-w-[80vw] h-full">
-            <Sidebar />
+      {/* Mobile sidebar overlay — animated */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-overlay flex">
+            {/* Backdrop fade */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setSidebarOpen(false)}
+            />
+            {/* Sidebar slide-in */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-64 max-w-[80vw] h-full z-10"
+            >
+              <Sidebar />
+            </motion.div>
           </div>
-          <div
-            className="flex-1 bg-black/50"
-            onClick={() => setSidebarOpen(false)}
-          />
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header />
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 pb-20 lg:pb-6 safe-bottom">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 
@@ -107,8 +132,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className={cn("h-5 w-5 transition-transform duration-200", active && "scale-110")} />
               <span>{item.label}</span>
+              {active && (
+                <motion.div
+                  layoutId="mobile-nav-indicator"
+                  className="absolute bottom-1 h-0.5 w-6 rounded-full bg-primary"
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                />
+              )}
             </Link>
           );
         })}

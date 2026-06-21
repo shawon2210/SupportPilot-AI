@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,13 @@ import { useWorkspaceStore } from "@/stores";
 import { formatNumber } from "@/lib/utils";
 import { toast } from "sonner";
 import { BarChart3, Filter, RefreshCw } from "lucide-react";
+import { PageTransition, StaggerContainer, StaggerItem } from "@/components/shared/page-transition";
+
+/* Lazy-load the chart to reduce initial bundle (~120KB deferred) */
+const LazyUsageChart = dynamic(
+  () => import("@/components/shared/usage-chart"),
+  { ssr: false, loading: () => <Skeleton className="h-48 sm:h-64 w-full" /> }
+);
 
 type OverviewData = {
   total_messages: number;
@@ -88,7 +95,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <PageTransition className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
@@ -114,9 +121,10 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+      <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((s) => (
-          <Card key={s.label} className="min-w-0">
+          <StaggerItem key={s.label}>
+            <Card className="min-w-0 card-glow">
             <CardHeader className="pb-1 sm:pb-2 flex flex-row items-center justify-between p-3 sm:p-4">
               <CardTitle className="text-[10px] sm:text-xs font-normal text-muted-foreground truncate">{s.label}</CardTitle>
               <Badge variant="secondary" className="text-[8px] sm:text-[10px] shrink-0">{s.trend}</Badge>
@@ -128,9 +136,10 @@ export default function AnalyticsPage() {
                 <p className="text-lg sm:text-2xl font-bold truncate">{formatNumber(s.value)}</p>
               )}
             </CardContent>
-          </Card>
+            </Card>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerContainer>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-3 sm:p-4">
@@ -159,15 +168,7 @@ export default function AnalyticsPage() {
                   <EmptyState icon={<BarChart3 className="h-8 w-8 sm:h-10 sm:w-10" />} title="No data available" description={`No ${m} data found for the selected period.`} action={{ label: "Refresh", onClick: () => refetchUsage() }} />
                 ) : (
                   <div className="h-48 sm:h-64 min-h-[12rem]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={filteredUsageData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                        <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "0.5rem", fontSize: 12 }} />
-                        <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    <LazyUsageChart data={filteredUsageData} />
                   </div>
                 )}
               </TabsContent>
@@ -205,6 +206,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageTransition>
   );
 }

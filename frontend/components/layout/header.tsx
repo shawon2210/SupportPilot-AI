@@ -162,7 +162,7 @@ export function Header() {
 
   return (
     <>
-      <header className="h-14 border-b border-border bg-card/85 glass flex items-center justify-between px-3 sm:px-4 sticky top-0 z-sticky flex-shrink-0">
+      <header role="banner" className="h-14 border-b border-border bg-card/85 glass flex items-center justify-between px-3 sm:px-4 sticky top-0 z-sticky flex-shrink-0">
         {/* Left: menu + breadcrumbs */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <button
@@ -231,6 +231,8 @@ export function Header() {
               onClick={() => setNotificationOpen(!notificationOpen)}
               className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground relative transition-colors"
               aria-label="Notifications"
+              aria-expanded={notificationOpen}
+              aria-haspopup="true"
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
@@ -239,7 +241,7 @@ export function Header() {
             </button>
 
             {notificationOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-80 rounded-xl border border-border bg-card shadow-lg z-popover py-1 animate-scale-in origin-top-right">
+              <div role="menu" className="absolute right-0 top-full mt-1.5 w-80 rounded-xl border border-border bg-card shadow-lg z-popover py-1 animate-scale-in origin-top-right">
                 <div className="px-3.5 py-2.5 border-b border-border flex items-center justify-between">
                   <span className="text-xs sm:text-sm font-semibold">Notifications</span>
                   {unreadCount > 0 && (
@@ -309,6 +311,8 @@ export function Header() {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-accent transition-colors"
               aria-label="User menu"
+              aria-expanded={userMenuOpen}
+              aria-haspopup="true"
             >
               <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
                 {user?.first_name?.[0] || user?.email?.[0] || "U"}
@@ -320,7 +324,7 @@ export function Header() {
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-border bg-card shadow-lg z-popover py-1 animate-scale-in origin-top-right">
+              <div role="menu" className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-border bg-card shadow-lg z-popover py-1 animate-scale-in origin-top-right">
                 <div className="px-3 py-2.5 border-b border-border">
                   <p className="text-sm font-semibold truncate">
                     {user?.first_name} {user?.last_name}
