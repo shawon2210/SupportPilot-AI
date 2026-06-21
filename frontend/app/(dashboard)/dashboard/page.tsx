@@ -102,11 +102,11 @@ export default function DashboardPage() {
     <PageTransition className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+          <h1 className="heading-1 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-primary flex-shrink-0" />
             <span className="truncate">Dashboard</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">Overview of your AI support workspace</p>
+          <p className="body-sm mt-1 truncate">Overview of your AI support workspace</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()} className="shrink-0">
           <RefreshCw className="h-4 w-4 mr-1" />
@@ -122,9 +122,9 @@ export default function DashboardPage() {
               <div className="space-y-1 flex-1">
                 <div className="flex items-center gap-2">
                   <Badge className="bg-primary/20 text-primary border-primary/25 hover:bg-primary/20">Setup Guide</Badge>
-                  <h2 className="text-sm sm:text-base font-bold">Get started with SupportPilot AI</h2>
+                  <h2 className="heading-2">Get started with SupportPilot AI</h2>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">Complete these quick steps to train your AI support agent and launch it on your website.</p>
+                <p className="body-sm">Complete these quick steps to train your AI support agent and launch it on your website.</p>
                 <div className="flex items-center gap-3 pt-2">
                   <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
                     <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="flex flex-col gap-1 p-3 sm:p-4 rounded-lg border border-border bg-background/50 hover:bg-accent hover:border-primary/40 transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md group min-w-0"
+                  className="flex flex-col gap-1 p-3 sm:p-4 rounded-lg border border-border bg-background/50 hover:bg-accent hover:border-primary/40 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 shadow-sm hover:shadow-md group min-w-0"
                 >
                   <div className="flex items-center gap-2">
                     <action.icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform duration-200 shrink-0" />

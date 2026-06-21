@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import {
@@ -15,6 +15,8 @@ import {
   X,
   ExternalLink,
   Plus,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn, formatDate, formatBytes, getStatusColor } from "@/lib/utils";
@@ -59,6 +61,14 @@ export default function KnowledgePage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+      setViewMode("cards");
+    }
+  }, []);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["documents", wsId, typeFilter, statusFilter],
@@ -125,10 +135,10 @@ export default function KnowledgePage() {
             <BookOpen className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            <h1 className="heading-1">
               Knowledge Base
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="body-sm mt-0.5">
               Upload documents and connect websites to build your AI knowledge
               sources.
             </p>
@@ -136,6 +146,27 @@ export default function KnowledgePage() {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 border border-border bg-muted/30 p-0.5 rounded-lg mr-2 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setViewMode("table")}
+              className={cn("h-8 w-8 rounded-md transition-all active:scale-95", viewMode === "table" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground")}
+              aria-label="Table view"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setViewMode("cards")}
+              className={cn("h-8 w-8 rounded-md transition-all active:scale-95", viewMode === "cards" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground")}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
           <Link href="/knowledge/websites" className="flex-1 sm:flex-initial">
             <Button
               variant="outline"
@@ -177,8 +208,26 @@ export default function KnowledgePage() {
             )}
           </div>
 
+          {/* Mobile Filter Toggle Accordion Header */}
+          <div className="flex sm:hidden items-center justify-between border-t border-border/20 pt-2 mt-2">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              Filter Options
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="h-7 text-xs text-primary active:scale-95"
+            >
+              {showMobileFilters ? "Hide Filters" : "Show Filters"}
+            </Button>
+          </div>
+
           {/* Pill-style filters */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <div className={cn(
+            "flex-col sm:flex sm:flex-row gap-3 sm:gap-4",
+            showMobileFilters ? "flex" : "hidden"
+          )}>
             {/* Type pills */}
             <div className="flex-1">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
@@ -297,226 +346,220 @@ export default function KnowledgePage() {
         </Card>
       ) : (
         <>
-          {/* ── Mobile: Enhanced Card layout ──────────────────── */}
-          <div className="sm:hidden space-y-2.5">
-            {filtered.map((doc) => (
-              <Card
-                key={doc.id}
-                className="card-hover overflow-hidden active:scale-[0.99] transition-transform"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    {/* Type icon badge */}
-                    <div
-                      className={cn(
-                        "h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 text-[10px] font-bold tracking-wide border",
-                        doc.status === "ready"
-                          ? "bg-green-500/10 text-green-500 border-green-500/20"
-                          : doc.status === "error"
-                          ? "bg-red-500/10 text-red-400 border-red-500/20"
-                          : doc.status === "processing"
-                          ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
-                          : "bg-primary/10 text-primary border-primary/20"
-                      )}
-                    >
-                      {doc.source_type === "website"
-                        ? <Globe className="h-5 w-5" />
-                        : <span>{TYPE_ICONS[doc.source_type] || "DOC"}</span>}
-                    </div>
-
-                    {/* Document info */}
-                    <div className="flex-1 min-w-0">
-                      <a
-                        href={`/knowledge/${doc.id}`}
-                        className="text-sm font-semibold hover:text-primary transition-colors line-clamp-1 inline-flex items-center gap-1"
+          {viewMode === "cards" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 animate-fade-in">
+              {filtered.map((doc) => (
+                <Card
+                  key={doc.id}
+                  className="card-hover overflow-hidden active:scale-[0.99] transition-transform"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      {/* Type icon badge */}
+                      <div
+                        className={cn(
+                          "h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 text-[10px] font-bold tracking-wide border",
+                          doc.status === "ready"
+                            ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400"
+                            : doc.status === "error"
+                            ? "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400"
+                            : doc.status === "processing"
+                            ? "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400"
+                            : "bg-primary/10 text-primary border-primary/20"
+                        )}
                       >
-                        {doc.name}
-                        <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      </a>
+                        {doc.source_type === "website"
+                          ? <Globe className="h-5 w-5" />
+                          : <span>{TYPE_ICONS[doc.source_type] || "DOC"}</span>}
+                      </div>
 
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <Badge
-                          className={cn(
-                            getStatusColor(doc.status),
-                            "text-[10px] px-2 py-0"
-                          )}
-                          variant="outline"
+                      {/* Document info */}
+                      <div className="flex-1 min-w-0">
+                        <a
+                          href={`/knowledge/${doc.id}`}
+                          className="text-sm font-semibold hover:text-primary transition-colors line-clamp-1 inline-flex items-center gap-1"
                         >
-                          {doc.status}
-                        </Badge>
-                        <span className="text-[11px] text-muted-foreground uppercase font-medium">
-                          {doc.source_type}
-                        </span>
-                      </div>
+                          {doc.name}
+                          <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        </a>
 
-                      <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
-                        {doc.file_size && (
-                          <span className="flex items-center gap-1">
-                            <HardDrive className="h-3 w-3" />
-                            {formatBytes(doc.file_size)}
-                          </span>
-                        )}
-                        {doc.created_at && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(doc.created_at)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col gap-1 flex-shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive active:scale-90"
-                        onClick={() => handleDelete(doc.id)}
-                        aria-label={`Delete ${doc.name}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* ── Desktop: Enhanced Table layout ──────────────── */}
-          <div className="hidden sm:block">
-            <Card className="overflow-hidden border-border/60">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border/60 bg-muted/30">
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3.5">
-                        Document
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-28">
-                        Type
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-28">
-                        Status
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-24">
-                        Size
-                      </th>
-                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-36">
-                        Created
-                      </th>
-                      <th className="w-14 px-3 py-3.5" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/40">
-                    {filtered.map((doc) => (
-                      <tr
-                        key={doc.id}
-                        className="group hover:bg-muted/40 transition-colors duration-150"
-                      >
-                        {/* Name */}
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={cn(
-                                "h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 text-[9px] font-bold tracking-wide border",
-                                doc.status === "ready"
-                                  ? "bg-green-500/10 text-green-500 border-green-500/20"
-                                  : doc.status === "error"
-                                  ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                  : doc.status === "processing"
-                                  ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
-                                  : "bg-primary/10 text-primary border-primary/20"
-                              )}
-                            >
-                              {doc.source_type === "website"
-                                ? <Globe className="h-4 w-4" />
-                                : <span>{TYPE_ICONS[doc.source_type] || "DOC"}</span>}
-                            </div>
-                            <a
-                              href={`/knowledge/${doc.id}`}
-                              className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-1.5 group/link"
-                            >
-                              <span className="line-clamp-1">
-                                {doc.name}
-                              </span>
-                              <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
-                            </a>
-                          </div>
-                        </td>
-
-                        {/* Type */}
-                        <td className="px-4 py-3.5">
-                          <span className="text-xs font-medium text-muted-foreground uppercase bg-muted rounded-md px-2 py-1 inline-block">
-                            {doc.source_type}
-                          </span>
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-2 mt-1.5">
                           <Badge
                             className={cn(
                               getStatusColor(doc.status),
-                              "text-xs px-2.5 py-0.5"
+                              "text-[10px] px-2 py-0"
                             )}
                             variant="outline"
                           >
                             {doc.status}
                           </Badge>
-                        </td>
+                          <span className="text-[11px] text-muted-foreground uppercase font-medium">
+                            {doc.source_type}
+                          </span>
+                        </div>
 
-                        {/* Size */}
-                        <td className="px-4 py-3.5 text-sm text-muted-foreground tabular-nums">
-                          {doc.file_size ? formatBytes(doc.file_size) : "—"}
-                        </td>
+                        <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
+                          {doc.file_size && (
+                            <span className="flex items-center gap-1">
+                              <HardDrive className="h-3 w-3" />
+                              {formatBytes(doc.file_size)}
+                            </span>
+                          )}
+                          {doc.created_at && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(doc.created_at)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-                        {/* Created */}
-                        <td className="px-4 py-3.5 text-sm text-muted-foreground">
-                          {doc.created_at ? formatDate(doc.created_at) : "—"}
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-3 py-3.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-150 active:scale-90"
-                            onClick={() => handleDelete(doc.id)}
-                            aria-label={`Delete ${doc.name}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-                          </Button>
-                        </td>
+                      {/* Actions */}
+                      <div className="flex flex-col gap-1 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive active:scale-90"
+                          onClick={() => handleDelete(doc.id)}
+                          aria-label={`Delete ${doc.name}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="animate-fade-in">
+              <Card className="overflow-hidden border-border/60">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30">
+                        <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3.5">
+                          Document
+                        </th>
+                        <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-28">
+                          Type
+                        </th>
+                        <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-28">
+                          Status
+                        </th>
+                        <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-24">
+                          Size
+                        </th>
+                        <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3.5 w-36">
+                          Created
+                        </th>
+                        <th className="w-14 px-3 py-3.5" />
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-border/40">
+                      {filtered.map((doc) => (
+                        <tr
+                          key={doc.id}
+                          className="group hover:bg-muted/40 transition-colors duration-150"
+                        >
+                          {/* Name */}
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={cn(
+                                  "h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 text-[9px] font-bold tracking-wide border",
+                                  doc.status === "ready"
+                                    ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400"
+                                    : doc.status === "error"
+                                    ? "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400"
+                                    : doc.status === "processing"
+                                    ? "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400"
+                                    : "bg-primary/10 text-primary border-primary/20"
+                                )}
+                              >
+                                {doc.source_type === "website"
+                                  ? <Globe className="h-4 w-4" />
+                                  : <span>{TYPE_ICONS[doc.source_type] || "DOC"}</span>}
+                              </div>
+                              <a
+                                href={`/knowledge/${doc.id}`}
+                                className="text-sm font-medium hover:text-primary transition-colors inline-flex items-center gap-1.5 group/link"
+                              >
+                                <span className="line-clamp-1">
+                                  {doc.name}
+                                </span>
+                                <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
+                              </a>
+                            </div>
+                          </td>
 
-              {/* Table footer */}
-              <div className="border-t border-border/60 bg-muted/20 px-5 py-3 flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  Showing{" "}
-                  <span className="font-semibold text-foreground">
-                    {filtered.length}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-foreground">
-                    {documents.length}
-                  </span>{" "}
-                  documents
-                </p>
-                <Link href="/knowledge/upload">
-                  <Button size="sm" className="active:scale-95 h-8 text-xs">
-                    <Plus className="h-3.5 w-3.5 mr-1.5" />
-                    Add Document
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          </div>
+                          {/* Type */}
+                          <td className="px-4 py-3.5">
+                            <span className="text-xs font-medium text-muted-foreground uppercase bg-muted rounded-md px-2 py-1 inline-block">
+                              {doc.source_type}
+                            </span>
+                          </td>
 
-          {/* ── Mobile FAB-style add button ──────────────────── */}
+                          {/* Status */}
+                          <td className="px-4 py-3.5">
+                            <Badge
+                              className={cn(
+                                getStatusColor(doc.status),
+                                "text-xs px-2.5 py-0.5"
+                              )}
+                              variant="outline"
+                            >
+                              {doc.status}
+                            </Badge>
+                          </td>
+
+                          {/* Size */}
+                          <td className="px-4 py-3.5 text-sm text-muted-foreground tabular-nums">
+                            {doc.file_size ? formatBytes(doc.file_size) : "—"}
+                          </td>
+
+                          {/* Created */}
+                          <td className="px-4 py-3.5 text-sm text-muted-foreground">
+                            {doc.created_at ? formatDate(doc.created_at) : "—"}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-3 py-3.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-60 hover:opacity-100 group-hover:opacity-100 focus-visible:opacity-100 focus:opacity-100 transition-all duration-150 active:scale-90"
+                              onClick={() => handleDelete(doc.id)}
+                              aria-label={`Delete ${doc.name}`}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Table footer */}
+                <div className="border-t border-border/60 bg-muted/20 px-5 py-3 flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Showing{" "}
+                    <span className="font-semibold text-foreground">
+                      {filtered.length}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-foreground">
+                      {documents.length}
+                    </span>{" "}
+                    documents
+                  </p>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Mobile FAB-style add button */}
           <div className="sm:hidden flex justify-center pt-2">
             <Link href="/knowledge/upload">
               <Button size="sm" className="active:scale-95 shadow-sm">

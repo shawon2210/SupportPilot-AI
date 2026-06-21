@@ -1,16 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { ComponentType } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "@/components/charts/dynamic-recharts";
 import {
   Users, CreditCard, Activity, Server, RefreshCw, Building2,
   UserPlus, MessageSquare, PieChart, TrendingUp, DollarSign, Shield

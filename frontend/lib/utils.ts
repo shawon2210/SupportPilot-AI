@@ -64,19 +64,19 @@ export function getInitials(name: string | null | undefined): string {
 
 export function getRoleBadgeColor(role: string): string {
   switch (role) {
-    case "owner": return "bg-purple-500/10 text-purple-400 border-purple-500/20";
-    case "admin": return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-    case "agent": return "bg-green-500/10 text-green-400 border-green-500/20";
-    default: return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+    case "owner": return "bg-purple-500/10 text-purple-700 border-purple-500/20 dark:text-purple-400";
+    case "admin": return "bg-blue-500/10 text-blue-700 border-blue-500/20 dark:text-blue-400";
+    case "agent": return "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400";
+    default: return "bg-slate-500/10 text-slate-700 border-slate-500/20 dark:text-slate-400";
   }
 }
 
 export function getStatusColor(status: string): string {
   switch (status) {
-    case "active": case "ready": case "completed": case "succeeded": return "bg-green-500/10 text-green-400 border-green-500/20";
-    case "pending": case "processing": case "trialing": return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
-    case "failed": case "error": case "canceled": case "cancelled": return "bg-red-500/10 text-red-400 border-red-500/20";
-    case "past_due": return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-    default: return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+    case "active": case "ready": case "completed": case "succeeded": return "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400";
+    case "pending": case "processing": case "trialing": return "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400";
+    case "failed": case "error": case "canceled": case "cancelled": return "bg-red-500/10 text-red-700 border-red-500/20 dark:text-red-400";
+    case "past_due": return "bg-orange-500/10 text-orange-700 border-orange-500/20 dark:text-orange-400";
+    default: return "bg-slate-500/10 text-slate-700 border-slate-500/20 dark:text-slate-400";
   }
 }

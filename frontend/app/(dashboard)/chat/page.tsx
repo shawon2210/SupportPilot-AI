@@ -228,10 +228,10 @@ export default function ChatListPage() {
               <MessageSquare className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+              <h1 className="heading-1">
                 AI Chats
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
+              <p className="body-sm">
                 Conversations powered by your knowledge base
               </p>
             </div>
@@ -406,7 +406,7 @@ export default function ChatListPage() {
                       className={cn(
                         "h-9 w-9 rounded-lg",
                         "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-                        "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
+                        "opacity-100 sm:opacity-60 sm:hover:opacity-100 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 sm:focus:opacity-100",
                         "transition-all duration-200",
                         "active:scale-90"
                       )}

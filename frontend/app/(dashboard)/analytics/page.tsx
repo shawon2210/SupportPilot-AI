@@ -98,11 +98,11 @@ export default function AnalyticsPage() {
     <PageTransition className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+          <h1 className="heading-1 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 text-primary shrink-0" />
             <span className="truncate">Analytics</span>
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">Workspace performance insights</p>
+          <p className="body-sm mt-1 truncate">Workspace performance insights</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
