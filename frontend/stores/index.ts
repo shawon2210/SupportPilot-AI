@@ -12,13 +12,21 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null, token: null, isAuthenticated: false, isLoading: true,
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
-  setToken: (token) => set({ token }),
-  setLoading: (isLoading) => set({ isLoading }),
-  logout: () => set({ user: null, token: null, isAuthenticated: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null, token: null, isAuthenticated: false, isLoading: true,
+      setUser: (user) => set({ user, isAuthenticated: !!user }),
+      setToken: (token) => set({ token }),
+      setLoading: (isLoading) => set({ isLoading }),
+      logout: () => set({ user: null, token: null, isAuthenticated: false }),
+    }),
+    {
+      name: "supportpilot-auth",
+      partialize: (state) => ({ token: state.token, user: state.user, isAuthenticated: state.isAuthenticated }),
+    }
+  )
+);
 
 interface WorkspaceState {
   currentWorkspace: { id: string; name: string; slug: string; plan: string; logo_url?: string | null; is_active: boolean; created_at?: string | null } | null;

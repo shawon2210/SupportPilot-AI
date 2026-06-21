@@ -57,6 +57,13 @@ async def get_current_user(request: Request) -> dict:
 
 # ── Login Schemas ───────────────────────────────────────────
 
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    first_name: str = ""
+    last_name: str = ""
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -69,6 +76,40 @@ class LoginResponse(BaseModel):
 
 
 # ── Login Endpoint ──────────────────────────────────────────
+
+@router.post("/register", response_model=LoginResponse)
+async def register(
+    body: RegisterRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Register a new user with email and password, return JWT + user."""
+    stmt = select(User).where(User.email == body.email)
+    result = await db.execute(stmt)
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    user = User(
+        id=str(__import__("uuid").uuid4()),
+        email=body.email,
+        password_hash=hash_password(body.password),
+        first_name=body.first_name,
+        last_name=body.last_name,
+    )
+    db.add(user)
+    await db.flush()
+
+    token = create_access_token(
+        data={"sub": user.id, "email": user.email},
+        expires_delta=timedelta(hours=24),
+    )
+
+    return LoginResponse(
+        access_token=token,
+        user=UserResponse.model_validate(user),
+    )
+
 
 @router.post("/login", response_model=LoginResponse)
 async def login(

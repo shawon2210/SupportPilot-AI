@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
+import { AuthHydrator } from "@/providers/auth-hydrator";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -73,6 +74,7 @@ export default function RootLayout({
             <Toaster position="top-right" richColors />
           </QueryProvider>
         </ThemeProvider>
+        <AuthHydrator />
       </body>
     </html>
   );
