@@ -57,6 +57,10 @@ async def get_current_user(request: Request) -> dict:
     if not user_id:
         raise HTTPException(status_code=401, detail="Could not identify user")
 
+    # Attach user info to request.state so RBAC and other middleware can access it
+    request.state.user_id = user_id
+    request.state.user_email = request.headers.get("X-User-Email", "")
+
     return {"id": user_id, "email": request.headers.get("X-User-Email", "")}
 
 
