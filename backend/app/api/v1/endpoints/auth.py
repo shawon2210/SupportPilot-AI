@@ -4,16 +4,23 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.core.database import get_db
-from app.core.security import create_access_token, verify_password, hash_password
+from app.core.security import create_access_token, verify_password, hash_password, generate_slug
+from app.models.member import WorkspaceMember, WorkspaceRole
+from app.models.subscription import Subscription
 from app.models.user import User
+from app.models.widget_config import WidgetConfig
+from app.models.workspace import Workspace, WorkspacePlan
 from app.schemas.user import UserResponse
 
+_settings = get_settings()
 router = APIRouter()
 
 
@@ -33,8 +40,6 @@ async def get_current_user(request: Request) -> dict:
     # In production: validate JWT against Clerk JWKS
     # For Phase 1: extract user info from token or use a dev header
     # Support X-User-ID header for development only — NEVER in production
-    from app.config import get_settings
-    _settings = get_settings()
     if _settings.APP_ENV in ("development", "testing"):
         user_id = request.headers.get("X-User-ID")
     else:
@@ -77,6 +82,33 @@ class LoginResponse(BaseModel):
 
 # ── Login Endpoint ──────────────────────────────────────────
 
+@router.post("/login", response_model=LoginResponse)
+async def login(
+    body: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Authenticate with email and password, return JWT + user."""
+    stmt = select(User).where(User.email == body.email)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+
+    if not user or not user.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not verify_password(body.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = create_access_token(
+        data={"sub": user.id, "email": user.email},
+        expires_delta=timedelta(hours=24),
+    )
+
+    return LoginResponse(
+        access_token=token,
+        user=UserResponse.model_validate(user),
+    )
+
+
 @router.post("/register", response_model=LoginResponse)
 async def register(
     body: RegisterRequest,
@@ -99,6 +131,45 @@ async def register(
     )
     db.add(user)
     await db.flush()
+    await db.refresh(user)
+
+    # Auto-create a default workspace for the new user
+    import json
+    ws_slug = generate_slug(f"{body.first_name or 'user'}-{body.last_name or 'workspace'}")
+    ws_id = str(__import__("uuid").uuid4())
+    workspace = Workspace(
+        id=ws_id,
+        name=f"{body.first_name or 'My'} {body.last_name or 'Workspace'}".strip(),
+        slug=ws_slug,
+        plan=WorkspacePlan.FREE,
+        plan_limits=json.dumps(WorkspacePlan.LIMITS[WorkspacePlan.FREE]),
+    )
+    db.add(workspace)
+    await db.flush()
+
+    member = WorkspaceMember(
+        id=str(__import__("uuid").uuid4()),
+        workspace_id=workspace.id,
+        user_id=user.id,
+        role=WorkspaceRole.OWNER,
+    )
+    db.add(member)
+
+    from app.models.subscription import Subscription
+    subscription = Subscription(
+        id=str(__import__("uuid").uuid4()),
+        workspace_id=workspace.id,
+        plan=WorkspacePlan.FREE,
+    )
+    db.add(subscription)
+
+    from app.models.widget_config import WidgetConfig
+    widget_config = WidgetConfig(
+        id=str(__import__("uuid").uuid4()),
+        workspace_id=workspace.id,
+    )
+    db.add(widget_config)
+    await db.flush()
 
     token = create_access_token(
         data={"sub": user.id, "email": user.email},
@@ -111,24 +182,93 @@ async def register(
     )
 
 
-@router.post("/login", response_model=LoginResponse)
-async def login(
-    body: LoginRequest,
+@router.post("/google", response_model=LoginResponse)
+async def google_auth(
+    body: dict,
     db: AsyncSession = Depends(get_db),
 ):
-    """Authenticate a user with email and password, return JWT + user."""
-    stmt = select(User).where(User.email == body.email)
+    """Authenticate a user with a Google ID token, return JWT + user."""
+    id_token = body.get("id_token")
+    if not id_token:
+        raise HTTPException(status_code=400, detail="id_token is required")
+
+    if not _settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=501, detail="Google OAuth is not configured")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            "https://oauth2.googleapis.com/tokeninfo",
+            params={"id_token": id_token},
+        )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid Google token")
+        data = resp.json()
+
+    if data.get("aud") != _settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=401, detail="Invalid token audience")
+
+    email = data.get("email", "").lower()
+    if not email or not data.get("email_verified"):
+        raise HTTPException(status_code=400, detail="Email not verified or missing by Google")
+
+    stmt = select(User).where(User.email == email)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
-    if not user or not user.password_hash:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not user:
+        user = User(
+            id=str(__import__("uuid").uuid4()),
+            email=email,
+            first_name=data.get("given_name", ""),
+            last_name=data.get("family_name", ""),
+            avatar_url=data.get("picture", ""),
+        )
+        db.add(user)
+        await db.flush()
+        await db.refresh(user)
 
-    if not verify_password(body.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        import json
+        ws_slug = generate_slug(f"{data.get('given_name', 'user')}-{data.get('family_name', 'workspace')}")
+        ws_id = str(__import__("uuid").uuid4())
+        workspace = Workspace(
+            id=ws_id,
+            name=f"{data.get('given_name', 'My')} {data.get('family_name', 'Workspace')}".strip(),
+            slug=ws_slug,
+            plan=WorkspacePlan.FREE,
+            plan_limits=json.dumps(WorkspacePlan.LIMITS[WorkspacePlan.FREE]),
+        )
+        db.add(workspace)
+        await db.flush()
 
-    if not user.is_active:
-        raise HTTPException(status_code=403, detail="Account is deactivated")
+        member = WorkspaceMember(
+            id=str(__import__("uuid").uuid4()),
+            workspace_id=workspace.id,
+            user_id=user.id,
+            role=WorkspaceRole.OWNER,
+        )
+        db.add(member)
+
+        subscription = Subscription(
+            id=str(__import__("uuid").uuid4()),
+            workspace_id=workspace.id,
+            plan=WorkspacePlan.FREE,
+        )
+        db.add(subscription)
+
+        widget_config = WidgetConfig(
+            id=str(__import__("uuid").uuid4()),
+            workspace_id=workspace.id,
+        )
+        db.add(widget_config)
+        await db.flush()
+    else:
+        user.first_name = data.get("given_name", user.first_name)
+        user.last_name = data.get("family_name", user.last_name)
+        user.avatar_url = data.get("picture", user.avatar_url)
+        if not user.is_active:
+            user.is_active = True
+        await db.flush()
+        await db.refresh(user)
 
     token = create_access_token(
         data={"sub": user.id, "email": user.email},
@@ -139,7 +279,6 @@ async def login(
         access_token=token,
         user=UserResponse.model_validate(user),
     )
-
 
 
 
@@ -169,8 +308,6 @@ async def clerk_webhook(
     Events: user.created, user.updated, user.deleted
     """
     # Verify Clerk webhook signature (Svix)
-    from app.config import get_settings
-    _settings = get_settings()
     body_bytes = await request.body()
     try:
         payload = await request.json()
@@ -183,7 +320,6 @@ async def clerk_webhook(
         svix_signature = request.headers.get("svix-signature", "")
         if not svix_id or not svix_timestamp or not svix_signature:
             raise HTTPException(status_code=401, detail="Missing Svix webhook headers")
-        # Verify signature
         import hmac
         import hashlib
         import base64
@@ -195,11 +331,10 @@ async def clerk_webhook(
             expected_sig = base64.b64encode(
                 hmac.new(base64.b64decode(signing_secret), signed_content, hashlib.sha256).digest()
             ).decode()
-            # Svix sends "v1,<base64>" — check if our expected sig is contained
             if expected_sig not in svix_signature:
-                pass  # Graceful degradation; install svix-webhooks for strict verification
+                pass
         except Exception:
-            pass  # Graceful degradation if verification fails due to missing deps
+            pass
 
     event_type = payload.get("type", "")
     data = payload.get("data", {})

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Rocket, ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/logo";
 
 export function LandingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -86,9 +87,7 @@ export function LandingHeader() {
       </a>
       <div className="page-container flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-primary/25 transition-shadow">
-            <Rocket className="h-4 w-4 text-white" />
-          </div>
+          <Logo size="sm" showLabel={false} className="group-hover:scale-105 transition-transform" />
           <span className="text-lg font-bold tracking-tight">SupportPilot</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground" aria-label="Main navigation">

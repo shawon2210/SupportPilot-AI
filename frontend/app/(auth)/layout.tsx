@@ -1,5 +1,6 @@
-import { Rocket, Sparkles, Zap, Shield, ArrowRight } from "lucide-react";
+import { Sparkles, Zap, Shield, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 
 const features = [
   { icon: Zap, title: "AI-Powered Responses", desc: "Instant, accurate answers from your knowledge base" },
@@ -30,9 +31,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* Logo */}
           <div>
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                <Rocket className="h-5 w-5" />
-              </div>
+              <Logo size="md" showLabel={false} className="group-hover:scale-105 transition-transform" />
               <span className="text-2xl font-bold tracking-tight">SupportPilot</span>
             </Link>
           </div>
@@ -92,9 +91,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Mobile header */}
         <div className="lg:hidden flex items-center justify-between p-4 border-b border-border">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Rocket className="h-4 w-4 text-primary" />
-            </div>
+            <Logo size="sm" showLabel={false} />
             <span className="text-lg font-bold">SupportPilot</span>
           </Link>
         </div>

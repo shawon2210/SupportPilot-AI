@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Rocket, Loader2, Check } from "lucide-react";
+import { Loader2, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
@@ -130,7 +130,7 @@ export default function CreateWorkspacePage() {
           <Card className="bg-muted/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Rocket className="h-4 w-4 text-primary" />
+                <Zap className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">Free Plan</span>
                 <Badge variant="secondary" className="ml-auto">Default</Badge>
               </div>

@@ -48,10 +48,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener("resize", handleResize);
   }, [setSidebarOpen]);
 
-  if (!isAuthenticated) return null;
+  // Show loading state while auth state is being hydrated from localStorage
+  if (authLoading) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground text-sm">Checking authentication...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       {/* Desktop sidebar — always visible when sidebarOpen is true and screen >= 1024px */}
       <div
         className={cn(

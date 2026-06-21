@@ -49,7 +49,11 @@ class Settings(BaseSettings):
     CLERK_WEBHOOK_SECRET: str = ""
     CLERK_PUBLISHABLE_KEY: str = ""
 
-    # ── AI Provider Configuration ──────────────────────────────
+    # ── Google OAuth ─────────────────────────────────────────────
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+
+    # ── AI Provider Configuration ────────────────────────────────
     AI_PROVIDER: str = "openai"
     AI_EMBEDDING_MODEL: str = "text-embedding-3-small"
 

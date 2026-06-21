@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Rocket,
   Zap,
   Shield,
   BarChart3,
@@ -16,6 +15,7 @@ import {
   Users,
   ChevronRight,
 } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { LandingHeader } from "@/components/landing-header";
 import { cn } from "@/lib/utils";
 
@@ -576,9 +576,7 @@ export function LandingContent() {
         <div className="page-container">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                <Rocket className="h-4.5 w-4.5 text-white" />
-              </div>
+              <Logo size="sm" showLabel={false} />
               <span className="text-base font-bold tracking-tight">SupportPilot</span>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">

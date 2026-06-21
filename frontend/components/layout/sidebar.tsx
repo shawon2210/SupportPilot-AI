@@ -14,7 +14,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Rocket,
   ShieldCheck,
   X,
   LogOut,
@@ -28,6 +27,7 @@ import {
 } from "lucide-react";
 import { useUIStore, useAuthStore } from "@/stores";
 import { WorkspaceSwitcher } from "./workspace-switcher";
+import { LogoMark } from "@/components/logo";
 import {
   Tooltip,
   TooltipContent,
@@ -145,9 +145,7 @@ export function Sidebar() {
             sidebarCollapsed ? "justify-center" : "gap-3"
           )}
         >
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-            <Rocket className="h-4 w-4 text-white" />
-          </div>
+          <LogoMark size={32} />
           {!sidebarCollapsed && (
             <span className="text-base font-bold tracking-tight truncate">
               SupportPilot

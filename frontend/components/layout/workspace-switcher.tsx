@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Plus } from "lucide-react";
 import { api } from "@/lib/api";
-import { useWorkspaceStore } from "@/stores";
+import { useAuthStore, useWorkspaceStore } from "@/stores";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,15 +19,20 @@ import { toast } from "sonner";
 
 export function WorkspaceSwitcher() {
   const { currentWorkspace, setCurrentWorkspace, workspaces, setWorkspaces } = useWorkspaceStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [open, setOpen] = useState(false);
 
   type WorkspaceItem = { id: string; name: string; slug: string; plan: string; is_active: boolean; created_at: string | null };
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["workspaces"],
     queryFn: async () => {
-      const res = await api.get<WorkspaceItem[]>("/workspaces");
-      return res || [];
+      const res = await api.get<{ data?: WorkspaceItem[] } | WorkspaceItem[]>("/workspaces");
+      // Handle both { data: [...] } and [...] response shapes
+      if (Array.isArray(res)) return res;
+      if (res && typeof res === "object" && "data" in res && Array.isArray(res.data)) return res.data;
+      return [];
     },
+    enabled: isAuthenticated,
   });
 
   useEffect(() => {
@@ -38,6 +43,11 @@ export function WorkspaceSwitcher() {
       setWorkspaces(data);
     }
   }, [data, currentWorkspace, setCurrentWorkspace, setWorkspaces]);
+
+  // Safely get the list of workspaces to render
+  const workspaceList = Array.isArray(workspaces) && workspaces.length > 0
+    ? workspaces
+    : Array.isArray(data) ? data : [];
 
   const handleSelect = (workspace: { id: string; name: string; slug: string; plan: string; is_active: boolean; created_at: string | null }) => {
     setCurrentWorkspace(workspace);
@@ -86,7 +96,7 @@ export function WorkspaceSwitcher() {
           </div>
         ) : (
           <div className="max-h-64 overflow-y-auto">
-            {(workspaces.length > 0 ? workspaces : (data || [])).map((workspace) => {
+            {workspaceList.map((workspace) => {
               const item: WorkspaceItem = {
                 id: workspace.id,
                 name: workspace.name,

@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   title: "SupportPilot AI",
   description:
     "Multi-tenant AI Customer Support Platform. Upload documentation, train AI agents, and deploy on your website in minutes.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   keywords: [
     "AI support",
     "customer support",

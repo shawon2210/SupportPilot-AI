@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { Rocket, Loader2, Check, ArrowRight } from "lucide-react";
+import { Loader2, Check, ArrowRight } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
@@ -86,7 +87,7 @@ export default function OnboardingPage() {
     <div className="min-h-dvh flex items-center justify-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-2 justify-center mb-8">
-          <Rocket className="h-8 w-8 text-primary" />
+          <Logo size="lg" showLabel={false} />
           <span className="text-2xl font-bold">SupportPilot</span>
         </div>
 

@@ -27,7 +27,7 @@ class ApiClient {
       } else {
         try {
           const err = await res.json();
-          message = err.error?.message || err.message || message;
+          message = (err as Record<string, unknown>)["detail"] as string || (err as Record<string, unknown>)["error"] as string || message;
         } catch {
           message = res.statusText || message;
         }
