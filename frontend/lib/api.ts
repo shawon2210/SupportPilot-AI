@@ -21,8 +21,18 @@ class ApiClient {
     if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
     const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new ApiError(res.status, err.error?.message || err.message || "Request failed", err.error?.code || "UNKNOWN_ERROR");
+      let message = "Request failed";
+      if (res.status === 0 || res.status === 502 || res.status === 503) {
+        message = `Cannot reach server at ${this.baseUrl}. Is the backend running?`;
+      } else {
+        try {
+          const err = await res.json();
+          message = err.error?.message || err.message || message;
+        } catch {
+          message = res.statusText || message;
+        }
+      }
+      throw new ApiError(res.status, message, "REQUEST_FAILED");
     }
     return res.json();
   }

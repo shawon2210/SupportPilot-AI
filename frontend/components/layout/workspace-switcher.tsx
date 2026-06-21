@@ -1,53 +1,122 @@
 "use client";
-import Link from "next/link";
-import { useState } from "react";
-import { ChevronDown, Plus, Check } from "lucide-react";
+
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, Plus } from "lucide-react";
+import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
-import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export function WorkspaceSwitcher() {
-  const { currentWorkspace, workspaces, setCurrentWorkspace } = useWorkspaceStore();
+  const { currentWorkspace, setCurrentWorkspace, workspaces, setWorkspaces } = useWorkspaceStore();
   const [open, setOpen] = useState(false);
 
-  return (
-    <div className="relative">
-      <button onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-accent text-left">
-        <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-          {currentWorkspace?.name?.[0]?.toUpperCase() || "W"}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{currentWorkspace?.name || "Select workspace"}</p>
-          <p className="text-xs text-muted-foreground capitalize">{currentWorkspace?.plan || "free"}</p>
-        </div>
-        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
+  type WorkspaceItem = { id: string; name: string; slug: string; plan: string; is_active: boolean; created_at: string | null };
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: async () => {
+      const res = await api.get<WorkspaceItem[]>("/workspaces");
+      return res || [];
+    },
+  });
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-overlay" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 right-0 top-full mt-1 rounded-md border border-border bg-card shadow-lg z-popover py-1 max-h-64 overflow-y-auto">
-            {workspaces.map((ws) => (
-              <button key={ws.id} onClick={() => { setCurrentWorkspace(ws); setOpen(false); }}
-                className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-accent">
-                <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-                  {ws.name[0]?.toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{ws.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{ws.plan}</p>
-                </div>
-                {currentWorkspace?.id === ws.id && <Check className="h-4 w-4 text-primary" />}
-              </button>
-            ))}
-            <div className="border-t border-border mt-1 pt-1">
-            <Link href="/workspaces/create" className="flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-accent">
-              <Plus className="h-4 w-4" />Create workspace
-            </Link>
-            </div>
+  useEffect(() => {
+    if (data && data.length > 0 && !currentWorkspace) {
+      setCurrentWorkspace(data[0]);
+      setWorkspaces(data);
+    } else if (data) {
+      setWorkspaces(data);
+    }
+  }, [data, currentWorkspace, setCurrentWorkspace, setWorkspaces]);
+
+  const handleSelect = (workspace: { id: string; name: string; slug: string; plan: string; is_active: boolean; created_at: string | null }) => {
+    setCurrentWorkspace(workspace);
+    setOpen(false);
+    toast.success(`Switched to ${workspace.name}`);
+  };
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          className="w-full justify-between items-center"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Skeleton className="h-4 w-24" />
+          ) : currentWorkspace ? (
+            <span className="truncate text-sm">
+              {currentWorkspace.name} <span className="text-muted-foreground">· {currentWorkspace.plan}</span>
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground">Select workspace</span>
+          )}
+          {!isLoading && <ChevronDown className="h-4 w-4 opacity-60" />}
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {isError ? (
+          <div className="p-2">
+            <p className="text-xs text-destructive mb-2">
+              {error instanceof Error ? error.message : "Failed to load workspaces"}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full"
+              onClick={() => refetch()}
+            >
+              Retry
+            </Button>
           </div>
-        </>
-      )}
-    </div>
+        ) : (
+          <div className="max-h-64 overflow-y-auto">
+            {(workspaces.length > 0 ? workspaces : (data || [])).map((workspace) => {
+              const item: WorkspaceItem = {
+                id: workspace.id,
+                name: workspace.name,
+                slug: workspace.slug,
+                plan: workspace.plan,
+                is_active: workspace.is_active,
+                created_at: workspace.created_at ?? null,
+              };
+              return (
+                <DropdownMenuItem
+                  key={item.id}
+                  onSelect={() => handleSelect(item)}
+                  className={currentWorkspace?.id === item.id ? "bg-accent" : ""}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="text-xs text-muted-foreground">{item.slug}</span>
+                  </div>
+                </DropdownMenuItem>
+              );
+            })}
+          </div>
+        )}
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => toast.info("Create workspace flow coming soon")}>
+          <Plus className="h-4 w-4 mr-2" />
+          New workspace
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

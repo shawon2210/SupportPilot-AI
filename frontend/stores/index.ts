@@ -40,21 +40,29 @@ interface WorkspaceState {
   removeWorkspace: (id: string) => void;
 }
 
-export const useWorkspaceStore = create<WorkspaceState>((set) => ({
-  currentWorkspace: null, workspaces: [], isLoading: false,
-  setCurrentWorkspace: (currentWorkspace) => set({ currentWorkspace }),
-  setWorkspaces: (workspaces) => set({ workspaces }),
-  setLoading: (isLoading) => set({ isLoading }),
-  addWorkspace: (w) => set((s) => ({ workspaces: [...s.workspaces, w] })),
-  updateWorkspace: (id, u) => set((s) => ({
-    workspaces: s.workspaces.map((w) => w.id === id ? { ...w, ...u } : w),
-    currentWorkspace: s.currentWorkspace?.id === id ? { ...s.currentWorkspace, ...u } : s.currentWorkspace,
-  })),
-  removeWorkspace: (id) => set((s) => ({
-    workspaces: s.workspaces.filter((w) => w.id !== id),
-    currentWorkspace: s.currentWorkspace?.id === id ? null : s.currentWorkspace,
-  })),
-}));
+export const useWorkspaceStore = create<WorkspaceState>()(
+  persist(
+    (set) => ({
+      currentWorkspace: null, workspaces: [], isLoading: false,
+      setCurrentWorkspace: (currentWorkspace) => set({ currentWorkspace }),
+      setWorkspaces: (workspaces) => set({ workspaces }),
+      setLoading: (isLoading) => set({ isLoading }),
+      addWorkspace: (w) => set((s) => ({ workspaces: [...s.workspaces, w] })),
+      updateWorkspace: (id, u) => set((s) => ({
+        workspaces: s.workspaces.map((w) => w.id === id ? { ...w, ...u } : w),
+        currentWorkspace: s.currentWorkspace?.id === id ? { ...s.currentWorkspace, ...u } : s.currentWorkspace,
+      })),
+      removeWorkspace: (id) => set((s) => ({
+        workspaces: s.workspaces.filter((w) => w.id !== id),
+        currentWorkspace: s.currentWorkspace?.id === id ? null : s.currentWorkspace,
+      })),
+    }),
+    {
+      name: "supportpilot-workspace",
+      partialize: (state) => ({ currentWorkspace: state.currentWorkspace, workspaces: state.workspaces }),
+    }
+  )
+);
 
 interface UIState {
   sidebarOpen: boolean;

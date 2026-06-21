@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { MessageSquare, FileText, Users, Zap, TrendingUp, AlertTriangle, BarChart3, Clock, RefreshCw, Check } from "lucide-react";
 import { api } from "@/lib/api";
+import { useWorkspaceStore } from "@/stores";
 import { formatNumber, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const quickActions = [
 type ActivityItem = { id: string; type: string; message: string; time: string };
 
 export default function DashboardPage() {
+  const { currentWorkspace } = useWorkspaceStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [showChecklist, setShowChecklist] = useState(false);
   const [teamInvited, setTeamInvited] = useState(false);
@@ -52,10 +54,14 @@ export default function DashboardPage() {
   };
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["dashboard"],
+    queryKey: ["dashboard", currentWorkspace?.id],
     queryFn: async () => {
       try {
-        const res = await api.get<{ data: Record<string, number> }>("/workspaces/placeholder/analytics/overview");
+        const workspaceId = currentWorkspace?.id;
+        if (!workspaceId) {
+          return { total_messages: 0, total_chats: 0, documents_count: 0, avg_response_time_ms: 0 };
+        }
+        const res = await api.get<{ data: Record<string, number> }>(`/workspaces/${workspaceId}/analytics/overview`);
         return res.data || {};
       } catch (e) {
         toast.error("Failed to load dashboard data");

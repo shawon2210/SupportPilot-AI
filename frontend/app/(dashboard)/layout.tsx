@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
-import { useUIStore, useAuthStore } from "@/stores";
+import { useUIStore, useAuthStore, useWorkspaceStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, MessageSquare, BookOpen, Settings } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -15,13 +15,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { sidebarOpen, sidebarCollapsed, setSidebarOpen } = useUIStore();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const isLoading = useAuthStore((s) => s.isLoading);
+  const authLoading = useAuthStore((s) => s.isLoading);
+  const { currentWorkspace, workspaces, setCurrentWorkspace } = useWorkspaceStore();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       router.push("/sign-in");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -47,13 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => window.removeEventListener("resize", handleResize);
   }, [setSidebarOpen]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen h-dvh items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+  if (!isAuthenticated) return null;
 
   return (
     <div className="flex h-screen h-dvh overflow-hidden bg-background">
