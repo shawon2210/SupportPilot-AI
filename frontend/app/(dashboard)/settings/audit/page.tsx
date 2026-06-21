@@ -121,9 +121,9 @@ export default function AuditPage() {
           </div>
 
           {/* Desktop: Table layout */}
-          <div className="hidden sm:block">
+          <div className="hidden sm:block overflow-x-auto">
             <Card>
-              <Table>
+              <Table className="min-w-[500px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Action</TableHead>

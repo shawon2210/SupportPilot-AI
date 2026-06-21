@@ -58,7 +58,7 @@ export default function OnboardingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background">
+      <div className="min-h-dvh flex items-center justify-center p-4 sm:p-8 bg-background">
         <div className="w-full max-w-lg">
           <div className="flex items-center gap-2 justify-center mb-8">
             <Skeleton className="h-8 w-8" />
@@ -83,7 +83,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-background">
+    <div className="min-h-dvh flex items-center justify-center p-4 sm:p-8 bg-background">
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-2 justify-center mb-8">
           <Rocket className="h-8 w-8 text-primary" />

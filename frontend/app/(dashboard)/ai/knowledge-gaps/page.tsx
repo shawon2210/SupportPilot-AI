@@ -341,7 +341,7 @@ export default function KnowledgeGapsPage() {
                 <div className="hidden sm:block animate-fade-in">
                   <Card>
                     <div className="overflow-x-auto">
-                      <table className="w-full min-w-[600px]">
+                      <table className="w-full min-w-[400px]">
                         <thead className="bg-muted/50">
                           <tr className="text-left text-xs text-muted-foreground">
                             <th className="px-4 py-3 font-medium">Query</th>

@@ -136,7 +136,7 @@ export function Sidebar() {
             />
             {!sidebarCollapsed && <span>{item.label}</span>}
             {isActive(item.href) && !sidebarCollapsed && (
-              <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+              <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             )}
           </Link>
         ))}
@@ -164,11 +164,14 @@ export function Sidebar() {
             >
               <item.icon
                 className={cn(
-                  "h-[18px] w-[18px] flex-shrink-0",
+                  "h-[18px] w-[18px] flex-shrink-0 transition-transform group-hover:scale-105 duration-200",
                   isActive(item.href) && "text-primary"
                 )}
               />
               {!sidebarCollapsed && <span>{item.label}</span>}
+              {isActive(item.href) && !sidebarCollapsed && (
+                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              )}
             </Link>
           ))}
         </div>
@@ -196,11 +199,14 @@ export function Sidebar() {
             >
               <item.icon
                 className={cn(
-                  "h-[18px] w-[18px] flex-shrink-0",
+                  "h-[18px] w-[18px] flex-shrink-0 transition-transform group-hover:scale-105 duration-200",
                   isActive(item.href) && "text-primary"
                 )}
               />
               {!sidebarCollapsed && <span>{item.label}</span>}
+              {isActive(item.href) && !sidebarCollapsed && (
+                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              )}
             </Link>
           ))}
         </div>

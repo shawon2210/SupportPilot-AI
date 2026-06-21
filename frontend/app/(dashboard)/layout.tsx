@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { useUIStore, useAuthStore } from "@/stores";
 import { cn } from "@/lib/utils";
+import { LayoutDashboard, MessageSquare, BookOpen, Settings } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { sidebarOpen, sidebarCollapsed, setSidebarOpen } = useUIStore();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoading = useAuthStore((s) => s.isLoading);
@@ -79,10 +82,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 safe-bottom">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 pb-20 lg:pb-6 safe-bottom">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/95 glass border-t border-border z-sticky flex items-center justify-around px-2 pb-safe shadow-lg">
+        {[
+          { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+          { href: "/chat", label: "Chat", icon: MessageSquare },
+          { href: "/knowledge", label: "Knowledge", icon: BookOpen },
+          { href: "/settings", label: "Settings", icon: Settings },
+        ].map((item) => {
+          const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center flex-1 py-1 gap-1 text-[10px] font-semibold transition-all duration-150",
+                active 
+                  ? "text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

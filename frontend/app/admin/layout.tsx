@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [setSidebarOpen]);
 
   return (
-    <div className="flex h-screen h-dvh overflow-hidden bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <div
         className={cn(
           "hidden lg:flex flex-col transition-all duration-300",

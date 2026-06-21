@@ -185,9 +185,8 @@ export default function AnalyticsPage() {
           <CardHeader className="p-3 sm:p-4">
             <CardTitle className="text-sm sm:text-base">Detailed Breakdown</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto -mx-px">
-              <Table>
+          <CardContent className="p-0 overflow-x-auto">
+              <Table className="min-w-[400px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs whitespace-nowrap">Date</TableHead>
@@ -203,7 +202,6 @@ export default function AnalyticsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
           </CardContent>
         </Card>
       )}

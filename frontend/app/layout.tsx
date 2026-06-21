@@ -9,7 +9,41 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SupportPilot AI",
-  description: "Multi-tenant AI Customer Support Platform",
+  description:
+    "Multi-tenant AI Customer Support Platform. Upload documentation, train AI agents, and deploy on your website in minutes.",
+  keywords: [
+    "AI support",
+    "customer support",
+    "knowledge base",
+    "chatbot",
+    "help desk",
+    "AI agent",
+  ],
+  openGraph: {
+    title: "SupportPilot AI — AI-Powered Customer Support Platform",
+    description:
+      "Upload your documentation, train an AI agent, and deploy it on your website in minutes. Multi-tenant AI customer support with knowledge base, analytics, and team collaboration.",
+    type: "website",
+    locale: "en_US",
+    siteName: "SupportPilot AI",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SupportPilot AI — AI-Powered Customer Support Platform",
+    description:
+      "Upload your documentation, train an AI agent, and deploy it on your website in minutes.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export const viewport: Viewport = {
@@ -18,11 +52,22 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <body
+        className={`${inter.className} bg-background text-foreground antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <QueryProvider>
             {children}
             <Toaster position="top-right" richColors />

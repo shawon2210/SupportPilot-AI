@@ -1,0 +1,15 @@
+# SupportPilot AI — robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /sign-in/
+Disallow: /sign-up/
+Disallow: /onboarding/
+
+# Sitemap
+Sitemap: https://supportpilot.ai/sitemap.xml

@@ -353,9 +353,9 @@ export default function TeamPage() {
           </div>
 
           {/* Desktop: Table layout */}
-          <div className="hidden sm:block">
+          <div className="hidden sm:block overflow-x-auto">
             <Card className="overflow-hidden">
-              <Table>
+              <Table className="min-w-[500px]">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-b-border/50">
                     <TableHead className="pl-5 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Member</TableHead>

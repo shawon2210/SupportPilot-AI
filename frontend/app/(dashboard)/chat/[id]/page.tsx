@@ -105,7 +105,14 @@ function MessageBubble({ message, isLast }: { message: Message; isLast?: boolean
         </div>
         <div className="text-sm leading-relaxed prose-sm max-w-none prose-p:my-1 prose-pre:my-2" dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }} />
         {isAssistant && isLast && message.content === "" && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />Thinking...</div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground py-1" aria-label="AI is thinking">
+            <span>Thinking</span>
+            <div className="flex gap-1 items-center h-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
+            </div>
+          </div>
         )}
         {isAssistant && <SourceCitations sources={message.sources ?? []} />}
         {isAssistant && message.content && (

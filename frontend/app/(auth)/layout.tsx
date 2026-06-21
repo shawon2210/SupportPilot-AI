@@ -9,16 +9,16 @@ const features = [
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-dvh flex flex-col lg:flex-row">
       {/* Left brand panel — hidden on mobile, visible on lg+ */}
       <div className="hidden lg:flex lg:w-[48%] relative overflow-hidden">
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700" />
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-blue-300 rounded-full blur-2xl" />
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/3 w-48 h-48 bg-blue-300 rounded-full blur-2xl animate-pulse-glow" />
         </div>
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 opacity-5" style={{
@@ -40,7 +40,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* Hero content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <h1 className="text-4xl xl:text-5xl font-bold leading-tight tracking-tight">
+              <h1 className="text-2xl sm:text-3xl xl:text-4xl font-bold leading-tight tracking-tight">
                 AI-powered support that
                 <span className="block text-blue-200">scales with your team</span>
               </h1>

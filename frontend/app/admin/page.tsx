@@ -257,7 +257,7 @@ export default function AdminPage() {
             />
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="min-w-[350px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs sm:text-sm">Metric</TableHead>

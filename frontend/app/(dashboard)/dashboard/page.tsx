@@ -1,9 +1,9 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { MessageSquare, FileText, Users, Zap, TrendingUp, AlertTriangle, BarChart3, Clock, RefreshCw } from "lucide-react";
+import { MessageSquare, FileText, Users, Zap, TrendingUp, AlertTriangle, BarChart3, Clock, RefreshCw, Check } from "lucide-react";
 import { api } from "@/lib/api";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,13 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const statCards = [
-  { label: "Total Messages", icon: MessageSquare, color: "text-blue-500", bg: "bg-blue-500/10", key: "total_messages" },
-  { label: "Total Chats", icon: Users, color: "text-green-500", bg: "bg-green-500/10", key: "total_chats" },
-  { label: "Documents", icon: FileText, color: "text-purple-500", bg: "bg-purple-500/10", key: "documents_count" },
-  { label: "Avg Response", icon: Clock, color: "text-orange-500", bg: "bg-orange-500/10", key: "avg_response_time_ms" },
+  { label: "Total Messages", icon: MessageSquare, color: "text-blue-500", bg: "bg-blue-500/10", cardClass: "stat-card-blue hover:border-blue-500/35", key: "total_messages" },
+  { label: "Total Chats", icon: Users, color: "text-green-500", bg: "bg-green-500/10", cardClass: "stat-card-green hover:border-emerald-500/35", key: "total_chats" },
+  { label: "Documents", icon: FileText, color: "text-purple-500", bg: "bg-purple-500/10", cardClass: "stat-card-purple hover:border-purple-500/35", key: "documents_count" },
+  { label: "Avg Response", icon: Clock, color: "text-orange-500", bg: "bg-orange-500/10", cardClass: "stat-card-orange hover:border-orange-500/35", key: "avg_response_time_ms" },
 ];
 
 const quickActions = [
@@ -33,6 +33,22 @@ type ActivityItem = { id: string; type: string; message: string; time: string };
 
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showChecklist, setShowChecklist] = useState(false);
+  const [teamInvited, setTeamInvited] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hideChecklist = localStorage.getItem("hide_onboarding") === "true";
+      setShowChecklist(!hideChecklist);
+      setTeamInvited(localStorage.getItem("team_invited") === "true");
+    }
+  }, []);
+
+  const handleInviteTeam = () => {
+    localStorage.setItem("team_invited", "true");
+    setTeamInvited(true);
+    toast.success("Mock invitation emails sent to support team members!");
+  };
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["dashboard"],
@@ -73,6 +89,14 @@ export default function DashboardPage() {
     );
   }
 
+  const hasDocs = (stats.documents_count ?? 0) > 0;
+  const hasChats = (stats.total_chats ?? 0) > 0;
+
+  let progress = 25;
+  if (hasDocs) progress += 25;
+  if (hasChats) progress += 25;
+  if (teamInvited) progress += 25;
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -89,9 +113,111 @@ export default function DashboardPage() {
         </Button>
       </div>
 
+      {/* Onboarding Checklist Widget */}
+      {showChecklist && (
+        <Card className="border-primary/25 bg-gradient-to-br from-primary/5 via-transparent to-transparent shadow-sm">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-primary/20 text-primary border-primary/25 hover:bg-primary/20">Setup Guide</Badge>
+                  <h2 className="text-sm sm:text-base font-bold">Get started with SupportPilot AI</h2>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground">Complete these quick steps to train your AI support agent and launch it on your website.</p>
+                <div className="flex items-center gap-3 pt-2">
+                  <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+                  </div>
+                  <span className="text-xs font-semibold text-primary whitespace-nowrap">{progress}% Complete</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => { setShowChecklist(false); localStorage.setItem("hide_onboarding", "true"); }}
+                className="text-xs text-muted-foreground hover:text-foreground shrink-0 font-semibold md:self-start transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-5">
+              {/* Step 1 */}
+              <div className="rounded-xl border border-border/50 bg-background/45 p-3.5 flex items-start gap-3">
+                <div className="h-5 w-5 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center shrink-0 mt-0.5 border border-green-500/20">
+                  <Check className="h-3 w-3" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold">Create workspace</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Setup support pilot profile</p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="rounded-xl border border-border/50 bg-background/45 p-3.5 flex items-start gap-3">
+                <div className={cn(
+                  "h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border",
+                  hasDocs 
+                    ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                    : "bg-muted text-muted-foreground border-border"
+                )}>
+                  {hasDocs ? <Check className="h-3 w-3" /> : <span className="text-[10px] font-bold">2</span>}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold">Train AI model</p>
+                  {hasDocs ? (
+                    <p className="text-[10px] text-green-500 mt-0.5 flex items-center gap-0.5"><Check className="h-2.5 w-2.5" /> AI Trained</p>
+                  ) : (
+                    <Link href="/knowledge" className="text-[10px] text-primary hover:underline font-semibold block mt-0.5">Upload docs &rarr;</Link>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="rounded-xl border border-border/50 bg-background/45 p-3.5 flex items-start gap-3">
+                <div className={cn(
+                  "h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border",
+                  hasChats 
+                    ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                    : "bg-muted text-muted-foreground border-border"
+                )}>
+                  {hasChats ? <Check className="h-3 w-3" /> : <span className="text-[10px] font-bold">3</span>}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold">Test AI chat widget</p>
+                  {hasChats ? (
+                    <p className="text-[10px] text-green-500 mt-0.5 flex items-center gap-0.5"><Check className="h-2.5 w-2.5" /> Widget tested</p>
+                  ) : (
+                    <Link href="/chat" className="text-[10px] text-primary hover:underline font-semibold block mt-0.5">Start simulator &rarr;</Link>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div className="rounded-xl border border-border/50 bg-background/45 p-3.5 flex items-start gap-3">
+                <div className={cn(
+                  "h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border",
+                  teamInvited 
+                    ? "bg-green-500/10 text-green-500 border-green-500/20" 
+                    : "bg-muted text-muted-foreground border-border"
+                )}>
+                  {teamInvited ? <Check className="h-3 w-3" /> : <span className="text-[10px] font-bold">4</span>}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold">Invite your team</p>
+                  {teamInvited ? (
+                    <p className="text-[10px] text-green-500 mt-0.5 flex items-center gap-0.5"><Check className="h-2.5 w-2.5" /> Team invited</p>
+                  ) : (
+                    <button onClick={handleInviteTeam} className="text-[10px] text-primary hover:underline font-semibold block mt-0.5 text-left">Send invites &rarr;</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {statCards.map((card) => (
-          <Card key={card.key} className="min-w-0">
+          <Card key={card.key} className={cn("min-w-0 transition-all duration-300 card-hover hover:-translate-y-0.5", card.cardClass)}>
             <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 p-3 sm:p-4">
               <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground truncate">{card.label}</CardTitle>
               <div className={`p-1.5 sm:p-2 rounded-md ${card.bg} shrink-0`}>
@@ -163,7 +289,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="hidden sm:block overflow-x-auto">
-                  <Table>
+                  <Table className="min-w-[400px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Event</TableHead>
@@ -200,11 +326,11 @@ export default function DashboardPage() {
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="flex flex-col gap-1 p-3 sm:p-4 rounded-lg border border-border hover:bg-accent hover:border-primary/50 transition-colors group min-w-0"
+                  className="flex flex-col gap-1 p-3 sm:p-4 rounded-lg border border-border bg-background/50 hover:bg-accent hover:border-primary/40 transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md group min-w-0"
                 >
                   <div className="flex items-center gap-2">
-                    <action.icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform shrink-0" />
-                    <span className="text-xs sm:text-sm font-medium truncate">{action.label}</span>
+                    <action.icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform duration-200 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold truncate group-hover:text-primary transition-colors">{action.label}</span>
                   </div>
                   <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{action.desc}</span>
                 </Link>

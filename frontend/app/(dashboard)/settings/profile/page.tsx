@@ -31,7 +31,6 @@ export default function ProfilePage() {
   const onSubmit = async (data: Schema) => {
     setLoading(true);
     try {
-      console.log("Update profile:", data);
       toast.success("Profile updated successfully");
     } catch (err) {
       toast.error("Failed to update profile");
