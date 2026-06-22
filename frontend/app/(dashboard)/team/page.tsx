@@ -6,7 +6,7 @@ import { Plus, Trash2, Users, Mail, Shield, UserCog, Crown, CheckCircle2, XCircl
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
 import { cn, formatDate, getRoleBadgeColor, getInitials } from "@/lib/utils";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -56,7 +56,7 @@ function AnimatedCount({ value }: { value: number }) {
 export default function TeamPage() {
   const { currentWorkspace } = useWorkspaceStore();
   const wsId = currentWorkspace?.id || "placeholder";
-  const queryClient = useQueryClient();
+  useQueryClient();
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
@@ -132,9 +132,9 @@ export default function TeamPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
           {/* View Toggle */}
-          <div className="flex items-center gap-1 border border-border bg-muted/30 p-0.5 rounded-lg mr-2 shrink-0">
+          <div className="flex items-center gap-1 border border-border bg-muted/30 p-0.5 rounded-lg mr-auto sm:mr-2 shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -156,10 +156,10 @@ export default function TeamPage() {
           </div>
           <Button
             onClick={() => setShowInvite(true)}
-            className="h-9 sm:h-10 text-sm sm:text-base w-full sm:w-auto active:scale-95 transition-transform"
+            className="h-9 sm:h-10 text-sm sm:text-base flex-1 sm:flex-initial sm:w-auto active:scale-95 transition-transform"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Invite Member
+            <span className="hidden xs:inline">Invite </span>Member
           </Button>
         </div>
       </div>

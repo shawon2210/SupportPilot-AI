@@ -1,7 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-import { Settings, Trash2, Loader2, Users, FileText, LayoutGrid } from "lucide-react";
+import { Settings, Trash2, Users, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
+
 
 interface WorkspaceDetail {
   id: string;

@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { sidebarOpen, sidebarCollapsed, setSidebarOpen } = useUIStore();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authLoading = useAuthStore((s) => s.isLoading);
-  const { currentWorkspace, workspaces, setCurrentWorkspace } = useWorkspaceStore();
+  useWorkspaceStore();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

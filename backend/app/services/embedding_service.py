@@ -7,17 +7,14 @@ Designed for batch processing with configurable batch sizes.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 
 from app.ai.factory import ProviderFactory
 from app.ai.providers.base import EmbeddingRequest
-from app.config import get_settings
 
 logger = logging.getLogger("supportpilot.embeddings")
 
@@ -121,6 +118,20 @@ class EmbeddingService:
 
     async def _embed_batch(self, texts: list[str]) -> BatchEmbeddingResult:
         """Embed a single batch with retry logic."""
+        from app.config import get_settings
+        settings = get_settings()
+        if not settings.OPENAI_API_KEY and not settings.DEEPSEEK_API_KEY and not settings.GEMINI_API_KEY:
+            logger.info("No API keys configured — using random embeddings (dev mode)")
+            import random
+            results = []
+            for text in texts:
+                results.append(EmbeddingResult(
+                    text=text,
+                    embedding=[random.uniform(-0.1, 0.1) for _ in range(384)],
+                    model="dev-random",
+                ))
+            return BatchEmbeddingResult(results=results, total_tokens=0, model="dev-random")
+
         provider = self._get_provider()
         request = EmbeddingRequest(
             texts=texts,
@@ -132,7 +143,7 @@ class EmbeddingService:
             try:
                 response = await provider.embed(request)
                 results = []
-                for text, embedding in zip(texts, response.embeddings):
+                for text, embedding in zip(texts, response.embeddings, strict=False):
                     results.append(EmbeddingResult(
                         text=text,
                         embedding=embedding,
@@ -198,7 +209,7 @@ class VectorStore:
         embeddings: list[list[float]],
     ) -> None:
         """Store multiple embeddings at once."""
-        for chunk_id, embedding in zip(chunk_ids, embeddings):
+        for chunk_id, embedding in zip(chunk_ids, embeddings, strict=False):
             await self.store_embedding(chunk_id, embedding)
 
     async def search_similar(
@@ -213,8 +224,9 @@ class VectorStore:
         For SQLite: brute-force cosine similarity over all chunks in workspace.
         For PostgreSQL: uses pgvector's <-> operator for IVFFlat index search.
         """
-        from app.models.document_chunk import DocumentChunk
         from sqlalchemy import select
+
+        from app.models.document_chunk import DocumentChunk
 
         stmt = select(DocumentChunk).where(
             DocumentChunk.workspace_id == self.workspace_id,

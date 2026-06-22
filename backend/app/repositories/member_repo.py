@@ -49,8 +49,11 @@ class MemberRepository(TenantRepository[WorkspaceMember]):
         limit: int = 20,
     ) -> list[WorkspaceMember]:
         """List workspace members with optional role filter."""
+        from sqlalchemy.orm import selectinload
+
         stmt = (
             select(WorkspaceMember)
+            .options(selectinload(WorkspaceMember.user))
             .where(
                 WorkspaceMember.workspace_id == workspace_id,
                 WorkspaceMember.is_active == True,  # noqa: E712

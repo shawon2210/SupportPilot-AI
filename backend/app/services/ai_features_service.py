@@ -14,7 +14,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.factory import ProviderFactory
@@ -23,7 +23,6 @@ from app.config import get_settings
 from app.core.security import generate_uuid
 from app.models.knowledge_gap import KnowledgeGap
 from app.models.message import Message
-from app.models.workspace import Workspace
 from app.services.base import BaseService
 
 logger = logging.getLogger("supportpilot.ai_features")

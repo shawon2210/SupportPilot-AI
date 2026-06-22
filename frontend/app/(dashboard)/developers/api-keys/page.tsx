@@ -5,11 +5,11 @@ import { Plus, Trash2, Copy, Check, RefreshCw, Key, Loader2 } from "lucide-react
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
-import { formatDate, truncate } from "@/lib/utils";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { formatDate } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";

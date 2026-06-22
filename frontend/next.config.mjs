@@ -4,6 +4,15 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
 
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "http://localhost:8000/api/v1/:path*",
+      },
+    ];
+  },
+
   async headers() {
     return [
       {
@@ -23,6 +32,10 @@ const nextConfig = {
               "base-uri 'self'",
               "form-action 'self'",
             ].join("; "),
+          },
+          {
+            key: "X-Content-Security-Policy",
+            value: "block-all-mixed-content",
           },
           {
             key: "X-Content-Type-Options",
@@ -50,4 +63,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy import text
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import get_settings
@@ -25,6 +25,7 @@ elif db_url.startswith("postgres://"):
 
 # Pool settings — only applicable for PostgreSQL (SQLite uses NullPool)
 _is_postgres = "postgresql" in db_url
+_is_sqlite = "sqlite" in db_url
 _engine_kwargs: dict = {
     "echo": settings.DATABASE_ECHO,
     "pool_pre_ping": True,
@@ -36,6 +37,10 @@ if _is_postgres:
         "pool_timeout": 30,
         "pool_recycle": 1800,
     })
+elif _is_sqlite:
+    # Busy timeout prevents "database is locked" under concurrent async requests
+    if "?" not in db_url:
+        db_url += "?timeout=5000"
 
 engine = create_async_engine(db_url, **_engine_kwargs)
 
@@ -72,6 +77,14 @@ async def init_db() -> None:
             await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         except Exception:
             pass  # SQLite doesn't support extensions
+
+        # SQLite-optimistic settings for dev — WAL mode enables concurrent reads
+        if "sqlite" in db_url:
+            await conn.execute(text("PRAGMA journal_mode=WAL"))
+            await conn.execute(text("PRAGMA busy_timeout=5000"))
+            await conn.execute(text("PRAGMA synchronous=NORMAL"))
+            await conn.execute(text("PRAGMA foreign_keys=ON"))
+
         await conn.run_sync(Base.metadata.create_all)
 
 

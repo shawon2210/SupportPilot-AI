@@ -15,7 +15,7 @@ services:
       - DATABASE_URL=sqlite+aiosqlite:///./data/supportpilot.db
       - AI_PROVIDER=openai
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - SECRET_KEY=dev-secret-key-change-in-production
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
       - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
     restart: unless-stopped
     healthcheck:

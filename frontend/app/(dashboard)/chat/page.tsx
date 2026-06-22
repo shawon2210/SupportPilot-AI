@@ -221,35 +221,21 @@ export default function ChatListPage() {
       )}
     >
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20">
-              <MessageSquare className="h-5 w-5 text-primary-foreground" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20 shrink-0">
+              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="heading-1">
-                AI Chats
-              </h1>
-              <p className="body-sm">
-                Conversations powered by your knowledge base
-              </p>
+            <div className="min-w-0">
+              <h1 className="heading-1 truncate">AI Chats</h1>
+              <p className="body-sm truncate">Conversations powered by your knowledge base</p>
             </div>
-          </div>
-          {/* Online status indicator */}
-          <div className="flex items-center gap-1.5 pl-[52px]">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Assistant online
-            </span>
           </div>
         </div>
         <Button
           onClick={() => setShowCreateDialog(true)}
-          className="h-10 sm:h-11 text-sm sm:text-base w-full sm:w-auto active:scale-95 transition-transform shadow-sm"
+          className="h-10 sm:h-11 text-sm sm:text-base w-full sm:w-auto active:scale-95 transition-transform shadow-sm shrink-0"
         >
           <Plus className="h-4 w-4 mr-2" />
           New Chat

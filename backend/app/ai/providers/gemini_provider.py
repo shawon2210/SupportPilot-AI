@@ -44,7 +44,10 @@ class GeminiProvider(AIProvider):
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 base_url=self.base_url,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": self.api_key,
+                },
                 timeout=httpx.Timeout(60.0, connect=10.0),
             )
         return self._client
@@ -76,7 +79,7 @@ class GeminiProvider(AIProvider):
         if system:
             payload["systemInstruction"] = {"parts": [{"text": system}]}
 
-        url = f"/models/{model}:generateContent?key={self.api_key}"
+        url = f"/models/{model}:generateContent"
         response = await client.post(url, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -107,7 +110,7 @@ class GeminiProvider(AIProvider):
         if system:
             payload["systemInstruction"] = {"parts": [{"text": system}]}
 
-        url = f"/models/{model}:streamGenerateContent?key={self.api_key}&alt=sse"
+        url = f"/models/{model}:streamGenerateContent?alt=sse"
         async with client.stream("POST", url, json=payload) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
@@ -133,7 +136,7 @@ class GeminiProvider(AIProvider):
                 "model": model,
                 "content": {"parts": [{"text": text}]},
             }
-            url = f"/models/{model}:embedContent?key={self.api_key}"
+            url = f"/models/{model}:embedContent"
             response = await client.post(url, json=payload)
             response.raise_for_status()
             data = response.json()

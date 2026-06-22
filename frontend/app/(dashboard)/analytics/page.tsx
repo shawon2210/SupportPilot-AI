@@ -38,18 +38,19 @@ type Metric = (typeof METRICS)[number];
 
 export default function AnalyticsPage() {
   const { currentWorkspace } = useWorkspaceStore();
-  const wsId = currentWorkspace?.id || "placeholder";
+  const wsId = currentWorkspace?.id;
   const [days, setDays] = useState<number>(30);
   const [metric, setMetric] = useState<Metric>("messages");
   const [filter, setFilter] = useState<string>("");
 
   const { data: overview, isLoading: overviewLoading, isError: overviewError, refetch: refetchOverview } = useQuery({
     queryKey: ["analytics-overview", wsId, days],
+    enabled: !!wsId,
     queryFn: async () => {
       try {
         const res = await api.get<{ data: OverviewData }>(`/workspaces/${wsId}/analytics/overview`, { days: String(days) });
         return res.data;
-      } catch (e) {
+      } catch {
         toast.error("Failed to load analytics overview");
         return { total_messages: 0, total_chats: 0, avg_response_time_ms: 0, documents_count: 0, period: "" };
       }
@@ -58,11 +59,12 @@ export default function AnalyticsPage() {
 
   const { data: usage, isLoading: usageLoading, isError: usageError, refetch: refetchUsage } = useQuery({
     queryKey: ["analytics-usage", wsId, metric, days],
+    enabled: !!wsId,
     queryFn: async () => {
       try {
         const res = await api.get<{ data: Array<{ date: string; value: number }>; metric: string }>(`/workspaces/${wsId}/analytics/usage`, { metric, days: String(days) });
         return res.data || [];
-      } catch (e) {
+      } catch {
         toast.error("Failed to load usage data");
         return [];
       }

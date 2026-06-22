@@ -89,12 +89,12 @@ class WebsiteCrawler:
         """
         try:
             import httpx
-        except ImportError:
-            raise CrawlerError("httpx is required for web crawling")
+        except ImportError as e:
+            raise CrawlerError("httpx is required for web crawling") from e
 
         # SSRF protection: reject private/internal URLs
         if not _is_safe_url(url):
-            raise CrawlerError(f"URL blocked: private/internal addresses are not allowed for security reasons")
+            raise CrawlerError("URL blocked: private/internal addresses are not allowed for security reasons")
 
         base_domain = urlparse(url).netloc
         visited: set[str] = set()

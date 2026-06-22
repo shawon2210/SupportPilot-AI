@@ -13,7 +13,7 @@ from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
 from app.core.rbac import require_role
 from app.schemas.knowledge_source import KnowledgeSourceResponse
-from app.services.document_service import DocumentService, DocumentProcessingError
+from app.services.document_service import DocumentProcessingError, DocumentService
 
 router = APIRouter()
 

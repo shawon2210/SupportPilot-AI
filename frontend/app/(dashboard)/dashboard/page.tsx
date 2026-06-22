@@ -53,17 +53,15 @@ export default function DashboardPage() {
     toast.success("Mock invitation emails sent to support team members!");
   };
 
+  const wsId = currentWorkspace?.id;
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["dashboard", currentWorkspace?.id],
+    queryKey: ["dashboard", wsId],
+    enabled: !!wsId,
     queryFn: async () => {
       try {
-        const workspaceId = currentWorkspace?.id;
-        if (!workspaceId) {
-          return { total_messages: 0, total_chats: 0, documents_count: 0, avg_response_time_ms: 0 };
-        }
-        const res = await api.get<{ data: Record<string, number> }>(`/workspaces/${workspaceId}/analytics/overview`);
+        const res = await api.get<{ data: Record<string, number> }>(`/workspaces/${wsId}/analytics/overview`);
         return res.data || {};
-      } catch (e) {
+      } catch {
         toast.error("Failed to load dashboard data");
         return { total_messages: 0, total_chats: 0, documents_count: 0, avg_response_time_ms: 0 };
       }
@@ -238,7 +236,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex items-baseline gap-1 sm:gap-2">
                   <p className="text-lg sm:text-2xl font-bold truncate">{formatNumber(stats[card.key])}</p>
-                  <Badge variant="secondary" className="text-[8px] sm:text-[10px] hidden xs:inline-flex">
+                  <Badge variant="secondary" className="text-[8px] sm:text-[10px] hidden sm:inline-flex">
                     <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" />
                     Live
                   </Badge>

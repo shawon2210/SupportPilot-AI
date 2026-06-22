@@ -1,10 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { ComponentType } from "react";
 import {
-  Users, CreditCard, Activity, Server, RefreshCw, Building2,
+  Users, Activity, RefreshCw, Building2,
   UserPlus, MessageSquare, PieChart, TrendingUp, DollarSign, Shield
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
@@ -289,8 +290,4 @@ export default function AdminPage() {
       </Card>
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
 }

@@ -11,16 +11,12 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import json
 import logging
 import time
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.models.workspace import Workspace
 
 logger = logging.getLogger("supportpilot.slack")
 
@@ -164,8 +160,7 @@ class SlackService:
         message: str,
     ) -> dict:
         """Handle /supportpilot chat <message>."""
-        from app.services.chat_service import ChatService, ChatError
-        from app.services.document_service import DocumentService
+        from app.services.chat_service import ChatError, ChatService
 
         chat_service = ChatService(self.db)
 

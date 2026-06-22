@@ -13,7 +13,6 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import BinaryIO
 
 logger = logging.getLogger("supportpilot.extraction")
 
@@ -59,8 +58,8 @@ class PDFExtractor(BaseExtractor):
     def extract_from_bytes(self, content: bytes, filename: str = "") -> str:
         try:
             import fitz
-        except ImportError:
-            raise ExtractionError("PyMuPDF not installed. Install with: pip install PyMuPDF")
+        except ImportError as e:
+            raise ExtractionError("PyMuPDF not installed. Install with: pip install PyMuPDF") from e
 
         text_parts = []
         try:
@@ -87,11 +86,11 @@ class PDFExtractor(BaseExtractor):
                     if page_text:
                         text_parts.append(page_text)
             return "\n\n".join(text_parts)
-        except ImportError:
+        except ImportError as e:
             raise ExtractionError(
                 "No PDF extraction library installed. "
                 "Install PyMuPDF: pip install PyMuPDF"
-            )
+            ) from e
 
 
 class DOCXExtractor(BaseExtractor):
@@ -100,8 +99,8 @@ class DOCXExtractor(BaseExtractor):
     def extract(self, file_path: str) -> str:
         try:
             from docx import Document
-        except ImportError:
-            raise ExtractionError("python-docx not installed. Install with: pip install python-docx")
+        except ImportError as e:
+            raise ExtractionError("python-docx not installed. Install with: pip install python-docx") from e
 
         try:
             doc = Document(file_path)
@@ -113,10 +112,11 @@ class DOCXExtractor(BaseExtractor):
 
     def extract_from_bytes(self, content: bytes, filename: str = "") -> str:
         try:
-            from docx import Document
             import io
-        except ImportError:
-            raise ExtractionError("python-docx not installed. Install with: pip install python-docx")
+
+            from docx import Document
+        except ImportError as e:
+            raise ExtractionError("python-docx not installed. Install with: pip install python-docx") from e
 
         try:
             doc = Document(io.BytesIO(content))

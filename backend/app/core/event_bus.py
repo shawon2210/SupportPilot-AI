@@ -25,8 +25,9 @@ import json
 import logging
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from app.config import get_settings
 
@@ -285,7 +286,7 @@ class EventBus:
             return
 
         stream_key = f"events:{event_type}"
-        group_name = f"processors"
+        group_name = "processors"
 
         # Create consumer group if it doesn't exist
         try:

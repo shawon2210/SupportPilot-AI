@@ -19,7 +19,6 @@ import hashlib
 import hmac
 import json
 import logging
-import time
 from datetime import datetime, timedelta
 
 from sqlalchemy import select
@@ -77,7 +76,7 @@ class OutboxEntry:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "OutboxEntry":
+    def from_dict(cls, data: dict) -> OutboxEntry:
         entry = cls(
             webhook_id=data["webhook_id"],
             event_type=data["event_type"],
@@ -240,8 +239,9 @@ class OutboxProcessor:
 
         # Get webhook details
         async with async_session_factory() as db:
-            from app.models.webhook import Webhook
             from sqlalchemy import select
+
+            from app.models.webhook import Webhook
 
             stmt = select(Webhook).where(Webhook.id == entry.webhook_id)
             result = await db.execute(stmt)

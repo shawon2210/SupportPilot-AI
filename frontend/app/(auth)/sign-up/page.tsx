@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, User, Check } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, User } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { toast } from "sonner";
 import { api } from "@/lib/api";

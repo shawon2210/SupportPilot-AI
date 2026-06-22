@@ -7,17 +7,15 @@ Integrates with the workspace_members table to check user roles.
 from __future__ import annotations
 
 import logging
-from functools import wraps
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import select
 
 from app.config import get_settings
+from app.models.member import WorkspaceMember, WorkspaceRole
 
 settings = get_settings()
-
-from app.models.member import WorkspaceMember, WorkspaceRole
 
 logger = logging.getLogger("supportpilot.rbac")
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Tag, AlertTriangle, BarChart3, Sparkles, Loader2, Info, Zap, Brain } from "lucide-react";
+import { Tag, AlertTriangle, BarChart3, Sparkles, Loader2, Info, Brain } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn, getStatusColor } from "@/lib/utils";
 import { useWorkspaceStore } from "@/stores";

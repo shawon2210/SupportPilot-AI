@@ -45,8 +45,9 @@ async def get_usage_over_time(
     start_date = __import__("datetime").datetime.utcnow() - __import__("datetime").timedelta(days=days)
 
     if metric == "messages":
-        from app.models.message import Message
         from sqlalchemy import func, select
+
+        from app.models.message import Message
         stmt = select(
             func.date(Message.created_at).label("date"),
             func.count().label("value"),

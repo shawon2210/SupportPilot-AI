@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Filter, FileText, User } from "lucide-react";
+import { Search, Filter, User } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
 import { formatDateTime } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

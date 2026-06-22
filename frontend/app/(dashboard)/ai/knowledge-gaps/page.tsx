@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
-  Search,
   CheckCircle,
   AlertTriangle,
   Loader2,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

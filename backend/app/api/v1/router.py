@@ -56,7 +56,6 @@ api_router.include_router(analytics.router, tags=["Analytics"])
 
 # ── Billing ───────────────────────────────────────────────────────
 api_router.include_router(billing.router, tags=["Billing"])
-api_router.include_router(billing.router, prefix="/billing", tags=["Billing Webhook"])
 
 # ── Public Widget (no auth) ───────────────────────────────────────
 api_router.include_router(widget.public_widget_router, prefix="/widget", tags=["Public Widget"])

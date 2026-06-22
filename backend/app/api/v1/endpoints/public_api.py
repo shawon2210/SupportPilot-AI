@@ -8,18 +8,17 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import verify_api_key
 from app.models.api_key import ApiKey
 from app.models.workspace import Workspace
 from app.schemas.chat import ChatCreate, ChatResponse, MessageCreate, MessageResponse
-from app.services.chat_service import ChatService, ChatError
-from app.services.document_service import DocumentService, DocumentProcessingError
+from app.services.chat_service import ChatError, ChatService
+from app.services.document_service import DocumentService
 
 router = APIRouter(dependencies=[])
 

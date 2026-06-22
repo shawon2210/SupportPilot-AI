@@ -9,15 +9,14 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import generate_uuid
+from app.models.chat import Chat
 from app.models.widget_config import WidgetConfig
 from app.services.chat_service import ChatService
-from app.services.document_service import DocumentService
 
 logger = logging.getLogger("supportpilot.widget")
 
@@ -133,7 +132,6 @@ class WidgetService:
                 Chat.id == chat_id,
                 Chat.workspace_id == workspace_id,
             )
-            from app.models.chat import Chat
             result = await self.db.execute(stmt)
             chat = result.scalar_one_or_none()
             if not chat:

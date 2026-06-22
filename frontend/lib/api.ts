@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 class ApiError extends Error {
   constructor(public status: number, message: string, public code: string = "UNKNOWN_ERROR") {
@@ -10,8 +10,12 @@ class ApiError extends Error {
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
+
   constructor(baseUrl: string) { this.baseUrl = baseUrl; }
+
   setToken(token: string | null) { this.token = token; }
+  getToken(): string | null { return this.token; }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: Record<string, string> = {
@@ -21,6 +25,18 @@ class ApiClient {
     if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
     const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
+      // On 401, clear auth and redirect to sign-in (don't retry)
+      if (res.status === 401 && typeof window !== "undefined") {
+        this.token = null;
+        try {
+          // Clear localStorage auth state
+          localStorage.removeItem("supportpilot-auth");
+        } catch {}
+        // Only redirect if not already on sign-in page
+        if (!window.location.pathname.startsWith("/sign-in") && !window.location.pathname.startsWith("/sign-up")) {
+          window.location.href = "/sign-in";
+        }
+      }
       let message = "Request failed";
       if (res.status === 0 || res.status === 502 || res.status === 503) {
         message = `Cannot reach server at ${this.baseUrl}. Is the backend running?`;
@@ -36,6 +52,7 @@ class ApiClient {
     }
     return res.json();
   }
+
   async get<T>(ep: string, params?: Record<string, string>): Promise<T> {
     const sp = params ? "?" + new URLSearchParams(params).toString() : "";
     return this.request<T>(`${ep}${sp}`, { method: "GET" });
@@ -48,6 +65,15 @@ class ApiClient {
   }
   async delete<T>(ep: string): Promise<T> {
     return this.request<T>(ep, { method: "DELETE" });
+  }
+
+  async postStream(ep: string, data?: unknown, signal?: AbortSignal): Promise<Response> {
+    const url = `${this.baseUrl}${ep}`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    return fetch(url, { method: "POST", body: data ? JSON.stringify(data) : undefined, headers, signal });
   }
 }
 

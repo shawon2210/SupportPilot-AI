@@ -54,15 +54,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         path = request.url.path
 
-        # Skip exempt paths
-        if any(path.startswith(p) for p in EXEMPT_PATHS):
+        # Skip OPTIONS preflight and exempt paths
+        if request.method == "OPTIONS" or any(path.startswith(p) for p in EXEMPT_PATHS):
             return await call_next(request)
 
         limiter = RateLimitService()
 
         # Determine the rate limit key and plan
         user_id = getattr(request.state, "user_id", None)
-        workspace_id = getattr(request.state, "workspace_id", None)
         api_key = request.headers.get("X-API-Key")
 
         if user_id:
@@ -127,17 +126,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def _get_workspace_plan(self, request: Request) -> str:
         """Get the workspace plan for rate limit tier."""
-        workspace_id = getattr(request.state, "workspace_id", None)
-        if not workspace_id:
-            return "free"
-        try:
-            from sqlalchemy import select
-            from app.models.workspace import Workspace
-            from app.core.database import async_session_factory
-            # Use the request's workspace info from middleware
-            return getattr(request.state, "workspace_plan", "free")
-        except Exception:
-            return "free"
+        return getattr(request.state, "workspace_plan", "free")
 
     async def _get_api_key_plan(self, request: Request) -> str:
         """Get the plan associated with an API key."""

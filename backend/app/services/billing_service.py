@@ -159,15 +159,13 @@ class BillingService:
         """
         try:
             import stripe
-        except ImportError:
-            raise BillingError("Stripe library not installed. Run: pip install stripe")
+        except ImportError as e:
+            raise BillingError("Stripe library not installed. Run: pip install stripe") from e
 
         stripe.api_key = self.settings.STRIPE_SECRET_KEY
 
         if not stripe.api_key:
             raise BillingError("Stripe API key not configured")
-
-        plan_details = self.get_plan_details(plan)
 
         # Get or create Stripe customer
         workspace = await self._get_workspace(workspace_id)
@@ -221,8 +219,8 @@ class BillingService:
         """
         try:
             import stripe
-        except ImportError:
-            raise BillingError("Stripe library not installed")
+        except ImportError as e:
+            raise BillingError("Stripe library not installed") from e
 
         stripe.api_key = self.settings.STRIPE_SECRET_KEY
 
@@ -251,8 +249,8 @@ class BillingService:
         """
         try:
             import stripe
-        except ImportError:
-            raise BillingError("Stripe library not installed")
+        except ImportError as e:
+            raise BillingError("Stripe library not installed") from e
 
         stripe.api_key = self.settings.STRIPE_SECRET_KEY
 
@@ -261,7 +259,7 @@ class BillingService:
                 payload, sig_header, self.settings.STRIPE_WEBHOOK_SECRET
             )
         except Exception as e:
-            raise BillingError(f"Webhook signature verification failed: {e}")
+            raise BillingError(f"Webhook signature verification failed: {e}") from e
 
         event_type = event["type"]
         data = event["data"]["object"]

@@ -3,16 +3,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Upload, FileText, X, Check, Loader2, CloudUpload, File, FileType, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+
 import { useWorkspaceStore } from "@/stores";
 import { cn } from "@/lib/utils";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
-import { ErrorState } from "@/components/ui/error-state";
+
 
 interface UploadFile {
   file: File;
@@ -29,7 +28,7 @@ const ACCEPTED_TYPES = [
   "text/markdown",
 ];
 
-const ACCEPTED_EXTENSIONS = [".pdf", ".docx", ".txt", ".md"];
+
 
 function getFileIcon(name: string) {
   const ext = name.split(".").pop()?.toLowerCase();
@@ -69,7 +68,14 @@ export default function UploadPage() {
       const formData = new FormData();
       formData.append("file", file.file);
       formData.append("name", file.name);
-      const res = await fetch(`/api/v1/workspaces/${wsId}/documents`, { method: "POST", body: formData, headers: {} });
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const token = (() => {
+        try { const raw = localStorage.getItem("supportpilot-auth"); return raw ? JSON.parse(raw)?.state?.token : null; } catch { return null; }
+      })();
+      const res = await fetch(`${baseUrl}/workspaces/${wsId}/documents`, {
+        method: "POST", body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!res.ok) throw new Error("Upload failed");
       return res.json();
     },

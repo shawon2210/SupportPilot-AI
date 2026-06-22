@@ -18,9 +18,9 @@ import {
   X,
   LogOut,
   Sparkles,
-  Zap,
-  Search,
-  History,
+
+
+
   AlertTriangle,
   ArrowUpCircle,
   Tag,

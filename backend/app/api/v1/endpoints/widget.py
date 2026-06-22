@@ -13,7 +13,7 @@ from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
 from app.core.rbac import require_role
 from app.schemas.widget import WidgetConfigResponse, WidgetConfigUpdate
-from app.services.widget_service import WidgetService, WidgetChatRequest
+from app.services.widget_service import WidgetChatRequest, WidgetService
 
 # ── Authenticated widget config router ─────────────────────────────
 

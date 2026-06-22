@@ -9,7 +9,6 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
@@ -24,7 +23,7 @@ from app.schemas.chat import (
     MessageCreate,
     MessageResponse,
 )
-from app.services.chat_service import ChatService, ChatError
+from app.services.chat_service import ChatError, ChatService
 
 router = APIRouter()
 

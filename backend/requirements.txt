@@ -23,9 +23,14 @@ cryptography==44.0.0
 python-multipart==0.0.20
 python-slugify==8.0.4
 email-validator==2.2.0
+PyMuPDF==1.27.2
+python-docx==1.2.0
 
 # Redis (caching + rate limiting)
 redis[hiredis]==5.2.1
+
+# Data Science / Embeddings
+numpy==1.26.4
 
 # Monitoring & Observability
 sentry-sdk[fastapi]==2.19.2

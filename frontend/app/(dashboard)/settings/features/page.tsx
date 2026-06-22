@@ -124,7 +124,7 @@ export default function FeaturesPage() {
       try {
         await new Promise((r) => setTimeout(r, 300));
         return currentWorkspace?.plan || "free";
-      } catch (e) {
+      } catch {
         toast.error("Failed to load plan features");
         return "free";
       }

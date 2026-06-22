@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Trash2, Edit, Webhook, Loader2, Check, X } from "lucide-react";
+import { Plus, Trash2, Webhook, Loader2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";

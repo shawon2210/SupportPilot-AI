@@ -31,6 +31,10 @@ class CacheService:
         self._memory_cache: dict[str, tuple[Any, float | None]] = {}
         self._use_redis = bool(self.settings.REDIS_URL)
 
+    async def get_redis(self):
+        """Public accessor for the Redis connection (used by RateLimitService)."""
+        return await self._get_redis()
+
     async def _get_redis(self):
         """Lazy-initialize Redis connection."""
         if self._redis is None and self._use_redis:

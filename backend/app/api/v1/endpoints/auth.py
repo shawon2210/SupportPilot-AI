@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.core.database import get_db
-from app.core.security import create_access_token, verify_password, hash_password, generate_slug
+from app.core.security import create_access_token, generate_slug, hash_password, verify_password
 from app.models.member import WorkspaceMember, WorkspaceRole
 from app.models.subscription import Subscription
 from app.models.user import User
@@ -139,7 +139,15 @@ async def register(
 
     # Auto-create a default workspace for the new user
     import json
-    ws_slug = generate_slug(f"{body.first_name or 'user'}-{body.last_name or 'workspace'}")
+    base_slug = generate_slug(f"{body.first_name or 'user'}-{body.last_name or 'workspace'}")
+    ws_slug = base_slug
+    counter = 1
+    while True:
+        existing = await db.execute(select(Workspace).where(Workspace.slug == ws_slug))
+        if not existing.scalar_one_or_none():
+            break
+        ws_slug = f"{base_slug}-{counter}"
+        counter += 1
     ws_id = str(__import__("uuid").uuid4())
     workspace = Workspace(
         id=ws_id,
@@ -232,7 +240,15 @@ async def google_auth(
         await db.refresh(user)
 
         import json
-        ws_slug = generate_slug(f"{data.get('given_name', 'user')}-{data.get('family_name', 'workspace')}")
+        base_slug = generate_slug(f"{data.get('given_name', 'user')}-{data.get('family_name', 'workspace')}")
+        ws_slug = base_slug
+        counter = 1
+        while True:
+            existing = await db.execute(select(Workspace).where(Workspace.slug == ws_slug))
+            if not existing.scalar_one_or_none():
+                break
+            ws_slug = f"{base_slug}-{counter}"
+            counter += 1
         ws_id = str(__import__("uuid").uuid4())
         workspace = Workspace(
             id=ws_id,
@@ -324,9 +340,9 @@ async def clerk_webhook(
         svix_signature = request.headers.get("svix-signature", "")
         if not svix_id or not svix_timestamp or not svix_signature:
             raise HTTPException(status_code=401, detail="Missing Svix webhook headers")
-        import hmac
-        import hashlib
         import base64
+        import hashlib
+        import hmac
         try:
             signing_secret = _settings.CLERK_WEBHOOK_SECRET
             if signing_secret and not signing_secret.endswith("="):

@@ -13,7 +13,7 @@ from app.core.database import get_db
 from app.core.rbac import require_role
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.knowledge_source import KnowledgeSourceResponse
-from app.services.document_service import DocumentService, DocumentProcessingError
+from app.services.document_service import DocumentProcessingError, DocumentService
 
 router = APIRouter()
 

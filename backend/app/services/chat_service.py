@@ -26,9 +26,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.factory import ProviderFactory
 from app.ai.providers.base import ChatMessage, ChatRequest, MessageRole
 from app.config import get_settings
-from app.core.security import generate_uuid
 from app.models.chat import Chat, ChatStatus
-from app.models.message import Message, MessageRole as MsgRole
+from app.models.message import Message
+from app.models.message import MessageRole as MsgRole
+from app.models.usage_metric import UsageMetric
 from app.repositories.base import TenantRepository
 from app.services.base import BaseService
 from app.services.document_service import DocumentService
@@ -115,7 +116,6 @@ Instructions:
         chat_id: str,
     ) -> Chat:
         """Get a chat with all its messages."""
-        from app.repositories.base import TenantRepository
         repo = TenantRepository(Chat, self.db)
         return await repo.get_by_workspace_or_404(workspace_id, chat_id)
 
@@ -308,7 +308,6 @@ Instructions:
         )
 
         full_content = ""
-        model = ""
         total_tokens = 0
 
         try:
@@ -443,9 +442,9 @@ Instructions:
         messages.reverse()
 
         return [
-            ChatMessage(role=msg.role, content=msg.content)
+            ChatMessage(role=msg.role.value if hasattr(msg.role, 'value') else str(msg.role), content=msg.content)
             for msg in messages
-            if msg.role != MsgRole.SYSTEM  # Skip system messages in history
+            if msg.role not in (MsgRole.SYSTEM, "system")
         ]
 
     # ── Usage Tracking ─────────────────────────────────────────────
@@ -457,8 +456,6 @@ Instructions:
         value: int,
     ) -> None:
         """Track usage metrics for billing and analytics."""
-        from app.models.usage_metric import UsageMetric
-
         metric = UsageMetric(
             id=self._generate_id(),
             workspace_id=workspace_id,
@@ -472,7 +469,6 @@ Instructions:
 
     def _generate_title(self) -> str:
         """Generate a default chat title."""
-        from datetime import datetime
         return f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 
 

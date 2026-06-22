@@ -6,7 +6,6 @@ Used for billing, analytics, and plan limit enforcement.
 
 from __future__ import annotations
 
-import json
 import logging
 from datetime import datetime, timedelta
 
@@ -14,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.usage_metric import UsageMetric
-from app.models.workspace import Workspace, WorkspacePlan
+from app.models.workspace import Workspace
 
 logger = logging.getLogger("supportpilot.usage")
 

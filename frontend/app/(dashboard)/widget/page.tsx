@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function WidgetPage() {
   const { currentWorkspace } = useWorkspaceStore();
@@ -26,7 +26,7 @@ export default function WidgetPage() {
     show_branding: true,
   });
 
-  const { data: widgetConfig, isLoading, isError, refetch } = useQuery({
+  const { isLoading, isError, refetch } = useQuery({
     queryKey: ["widget-config", wsId],
     queryFn: async () => {
       try {
@@ -231,7 +231,7 @@ export default function WidgetPage() {
 
               {/* Widget preview */}
               <div className={cn("absolute bottom-4", config.position === "right" ? "right-4" : "left-4")}>
-                <div className="w-64 sm:w-72 rounded-xl shadow-2xl overflow-hidden border" style={{ borderColor: config.primary_color + "30" }}>
+                <div className="w-[calc(100%-2rem)] max-w-[18rem] sm:max-w-[19rem] rounded-xl shadow-2xl overflow-hidden border" style={{ borderColor: config.primary_color + "30" }}>
                   <div className="px-4 py-3 text-white text-sm font-medium" style={{ backgroundColor: config.primary_color }}>
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4" />

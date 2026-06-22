@@ -1,4 +1,4 @@
-import { Sparkles, Zap, Shield, ArrowRight } from "lucide-react";
+import { Sparkles, Zap, Shield } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 

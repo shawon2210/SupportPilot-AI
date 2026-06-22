@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
 from app.core.rbac import require_role
-from app.services.billing_service import BillingService, BillingError
+from app.services.billing_service import BillingError, BillingService
 
 router = APIRouter()
 

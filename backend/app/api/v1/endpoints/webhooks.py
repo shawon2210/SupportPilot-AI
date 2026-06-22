@@ -13,7 +13,7 @@ from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
 from app.core.rbac import require_role
 from app.models.webhook import WebhookEvent
-from app.services.webhook_service import WebhookService, WebhookError
+from app.services.webhook_service import WebhookError, WebhookService
 
 router = APIRouter()
 
@@ -44,7 +44,7 @@ class WebhookResponse(BaseModel):
     created_at: str
 
     @classmethod
-    def from_model(cls, webhook, secret: str | None = None) -> "WebhookResponse":
+    def from_model(cls, webhook, secret: str | None = None) -> WebhookResponse:
         import json
         data = {
             "id": webhook.id,

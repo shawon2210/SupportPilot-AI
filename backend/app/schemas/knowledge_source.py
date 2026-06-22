@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from app.schemas.base import BaseSchema
 
 
@@ -15,5 +17,5 @@ class KnowledgeSourceResponse(BaseSchema):
     mime_type: str | None = None
     url: str | None = None
     error_message: str | None = None
-    created_at: str | None = None
-    updated_at: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

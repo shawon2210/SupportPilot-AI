@@ -31,12 +31,12 @@ class RateLimitResult:
 
 RATE_LIMITS = {
     "free": {
-        "requests_per_minute": 30,
-        "requests_per_hour": 500,
-        "requests_per_day": 2000,
-        "widget_per_minute": 10,
-        "widget_per_day": 500,
-        "api_per_minute": 20,
+        "requests_per_minute": 120,
+        "requests_per_hour": 3000,
+        "requests_per_day": 10000,
+        "widget_per_minute": 30,
+        "widget_per_day": 2000,
+        "api_per_minute": 60,
     },
     "starter": {
         "requests_per_minute": 60,
@@ -118,7 +118,7 @@ class RateLimitService:
 
         try:
             # Use Redis INCR for atomic counter
-            redis = await cache._get_redis()
+            redis = await cache.get_redis()
             if redis:
                 pipe = redis.pipeline()
                 now = time.time()
@@ -151,11 +151,12 @@ class RateLimitService:
 
         # Access the memory cache directly
         cache = get_cache()
-        if key in cache._memory_cache:
-            data, expiry = cache._memory_cache[key]
+        memory_cache = cache._memory_cache
+        if key in memory_cache:
+            data, expiry = memory_cache[key]
             if expiry is None or now < expiry:
                 data["count"] += 1
-                cache._memory_cache[key] = (data, expiry)
+                memory_cache[key] = (data, expiry)
                 remaining = max(0, limit - data["count"])
                 return RateLimitResult(
                     allowed=data["count"] <= limit,
@@ -166,7 +167,7 @@ class RateLimitService:
                 )
 
         # First request
-        cache._memory_cache[key] = ({"count": 1}, now + window)
+        memory_cache[key] = ({"count": 1}, now + window)
         return RateLimitResult(
             allowed=True,
             limit=limit,

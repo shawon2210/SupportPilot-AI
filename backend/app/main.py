@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
-from contextlib import asynccontextmanager
 
 from app.api.v1.router import api_router
 from app.config import get_settings
@@ -98,8 +99,6 @@ async def lifespan(app: FastAPI):
 
 
 # ── Application ──────────────────────────────────────────────────
-import asyncio
-
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,

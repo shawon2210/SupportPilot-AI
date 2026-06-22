@@ -6,7 +6,12 @@ from app.services.base import BaseService
 from app.services.billing_service import BillingError, BillingService
 from app.services.chat_service import ChatError, ChatService
 from app.services.document_service import DocumentProcessingError, DocumentService
-from app.services.embedding_service import EmbeddingError, EmbeddingService, VectorStore, cosine_similarity
+from app.services.embedding_service import (
+    EmbeddingError,
+    EmbeddingService,
+    VectorStore,
+    cosine_similarity,
+)
 from app.services.member_service import MemberService
 from app.services.slack_service import SlackService
 from app.services.text_chunking import Chunk, TextChunker

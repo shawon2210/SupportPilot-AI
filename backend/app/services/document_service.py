@@ -12,13 +12,11 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.core.security import generate_uuid
 from app.models.document_chunk import DocumentChunk
 from app.models.knowledge_source import (
     KnowledgeSource,
@@ -190,7 +188,7 @@ class DocumentService(BaseService[KnowledgeSource]):
         logger.info("Storing %d chunks (source=%s)", len(chunks), source.id)
         vector_store = VectorStore(self.db, source.workspace_id)
 
-        for i, (chunk, emb_result) in enumerate(zip(chunks, embedding_result.results)):
+        for i, (chunk, emb_result) in enumerate(zip(chunks, embedding_result.results, strict=False)):
             chunk_record = DocumentChunk(
                 id=self._generate_id(),
                 workspace_id=source.workspace_id,
@@ -330,7 +328,7 @@ class DocumentService(BaseService[KnowledgeSource]):
 
             # Store chunks and embeddings
             vector_store = VectorStore(self.db, source.workspace_id)
-            for chunk, emb_result in zip(all_chunks, embedding_result.results):
+            for chunk, emb_result in zip(all_chunks, embedding_result.results, strict=False):
                 chunk_record = DocumentChunk(
                     id=self._generate_id(),
                     workspace_id=source.workspace_id,
@@ -385,8 +383,6 @@ class DocumentService(BaseService[KnowledgeSource]):
         limit: int = 20,
     ) -> list[KnowledgeSource]:
         """List knowledge sources with optional filters."""
-        from sqlalchemy import select
-
         stmt = select(KnowledgeSource).where(
             KnowledgeSource.workspace_id == workspace_id,
         )

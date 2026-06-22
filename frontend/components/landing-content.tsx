@@ -227,7 +227,7 @@ export function LandingContent() {
               </div>
 
               {/* Headline */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-3xl mx-auto">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-3xl mx-auto">
                 AI support that
                 <br />
                 <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 bg-clip-text text-transparent drop-shadow-sm">
@@ -286,8 +286,8 @@ export function LandingContent() {
             </div>
 
             {/* Hero Dashboard Preview Mockup */}
-            <div className="max-w-5xl mx-auto animate-float">
-              <div className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-md shadow-2xl shadow-primary/5 overflow-hidden">
+            <div className="max-w-5xl mx-auto animate-float px-2 sm:px-0">
+              <div className="rounded-xl sm:rounded-2xl border border-border/80 bg-card/60 backdrop-blur-md shadow-2xl shadow-primary/5 overflow-hidden">
                 {/* Header Mockup */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-muted/40">
                   <div className="flex gap-1.5">

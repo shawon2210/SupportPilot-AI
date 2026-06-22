@@ -28,11 +28,11 @@ export default function ProfilePage() {
     defaultValues: { first_name: user?.first_name || "", last_name: user?.last_name || "", email: user?.email || "" },
   });
 
-  const onSubmit = async (data: Schema) => {
+  const onSubmit = async () => {
     setLoading(true);
     try {
       toast.success("Profile updated successfully");
-    } catch (err) {
+    } catch {
       toast.error("Failed to update profile");
     } finally {
       setLoading(false);

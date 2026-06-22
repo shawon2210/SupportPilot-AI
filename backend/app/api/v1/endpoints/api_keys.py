@@ -87,8 +87,8 @@ async def create_api_key(
     """
     full_key, key_hash = generate_api_key()
 
-    from datetime import datetime, timedelta
     import json
+    from datetime import datetime, timedelta
 
     api_key = ApiKey(
         id=generate_uuid(),

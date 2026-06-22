@@ -10,7 +10,7 @@ import asyncio
 import logging
 import os
 
-from app.core.database import async_session_factory, init_db, close_db
+from app.core.database import async_session_factory, close_db, init_db
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,8 +24,9 @@ async def process_document_task(workspace_id: str, source_id: str) -> None:
     Background task to process a document.
     This runs outside the request cycle.
     """
-    from app.models.knowledge_source import KnowledgeSource, KnowledgeSourceStatus
     from sqlalchemy import select
+
+    from app.models.knowledge_source import KnowledgeSource, KnowledgeSourceStatus
 
     async with async_session_factory() as db:
         try:
@@ -56,12 +57,13 @@ async def process_document_task(workspace_id: str, source_id: str) -> None:
                 return
 
             # Process using document service pipeline
-            from app.services.text_extraction import TextExtractorFactory
-            from app.services.text_chunking import TextChunker
-            from app.services.embedding_service import EmbeddingService, VectorStore
+            import json
+
             from app.core.security import generate_uuid
             from app.models.document_chunk import DocumentChunk
-            import json
+            from app.services.embedding_service import EmbeddingService, VectorStore
+            from app.services.text_chunking import TextChunker
+            from app.services.text_extraction import TextExtractorFactory
 
             extractor_factory = TextExtractorFactory()
             chunker = TextChunker(chunk_size=1000, chunk_overlap=200)
@@ -96,7 +98,7 @@ async def process_document_task(workspace_id: str, source_id: str) -> None:
 
             # Store
             vector_store = VectorStore(db, source.workspace_id)
-            for chunk, emb_result in zip(chunks, embedding_result.results):
+            for chunk, emb_result in zip(chunks, embedding_result.results, strict=False):
                 chunk_record = DocumentChunk(
                     id=generate_uuid(),
                     workspace_id=source.workspace_id,
@@ -160,8 +162,9 @@ async def main():
         try:
             # Run knowledge gap detection periodically for all workspaces
             async with async_session_factory() as db:
-                from app.models.workspace import Workspace
                 from sqlalchemy import select
+
+                from app.models.workspace import Workspace
                 stmt = select(Workspace).where(Workspace.is_active == True)  # noqa: E712
                 result = await db.execute(stmt)
                 workspaces = list(result.scalars().all())

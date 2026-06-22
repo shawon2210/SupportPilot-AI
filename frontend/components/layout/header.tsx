@@ -11,7 +11,7 @@ import {
   LogOut,
   Settings,
   User,
-  X,
+
   Sun,
   Moon,
   LayoutDashboard,
@@ -20,7 +20,7 @@ import {
   BarChart3,
   Users,
   Trash2,
-  Check,
+
 } from "lucide-react";
 import { useUIStore, useAuthStore, useNotificationStore } from "@/stores";
 import Link from "next/link";

@@ -7,7 +7,6 @@ Tracks request counts, latency, and business metrics.
 from __future__ import annotations
 
 import logging
-import time
 
 from prometheus_client import (
     CONTENT_TYPE_LATEST,

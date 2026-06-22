@@ -20,15 +20,12 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
 from functools import wraps
-from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.cache import get_cache
-from app.core.database import async_session_factory
 from app.models.workspace import Workspace, WorkspacePlan
 
 logger = logging.getLogger("supportpilot.features")
@@ -242,10 +239,11 @@ class FeatureFlags:
         if not self.db:
             return
 
+        from app.core.security import generate_uuid as _genid
         from app.models.audit_log import AuditLog
 
         log = AuditLog(
-            id=f"feat_{workspace_id}_{feature}",
+            id=_genid(),
             workspace_id=workspace_id,
             action=f"feature.{feature}.{'enabled' if enabled else 'disabled'}",
             resource_type="feature_flag",
