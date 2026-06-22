@@ -36,6 +36,10 @@ const sections = [
 
   { href: "/settings/profile", icon: User, title: "Profile", desc: "Manage your account information", category: "account", badge: null, color: "text-blue-500", bg: "bg-blue-500/10" },
 
+  { href: "/settings/tags", icon: FileText, title: "Chat Tags", desc: "Create and manage conversation tags", category: "account", badge: null, color: "text-indigo-500", bg: "bg-indigo-500/10" },
+
+  { href: "/settings/email", icon: Mail, title: "Email Settings", desc: "Configure SMTP and inbound email", category: "account", badge: null, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+
   { href: "/settings/features", icon: Puzzle, title: "Feature Flags", desc: "Manage feature availability", category: "account", badge: "3 active", color: "text-purple-500", bg: "bg-purple-500/10" },
 
   { href: "/settings/audit", icon: FileText, title: "Audit Logs", desc: "View workspace activity history", category: "account", badge: null, color: "text-orange-500", bg: "bg-orange-500/10" },

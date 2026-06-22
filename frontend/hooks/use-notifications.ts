@@ -25,7 +25,8 @@ export function useNotifications(
   customHandlers?: Record<string, NotificationHandler>,
 ) {
   const eventSourceRef = useRef<EventSource | null>(null);
-  const handlers = { ...defaultHandlers, ...customHandlers };
+  const handlersRef = useRef({ ...defaultHandlers, ...customHandlers });
+  handlersRef.current = { ...defaultHandlers, ...customHandlers };
 
   const connect = useCallback(() => {
     if (!workspaceId || eventSourceRef.current) return;
@@ -38,7 +39,7 @@ export function useNotifications(
       try {
         const data = JSON.parse(event.data) as NotificationEvent;
         if (data.type === "ping" || data.type === "connected") return;
-        const handler = handlers[data.type];
+        const handler = handlersRef.current[data.type];
         if (handler) handler(data);
       } catch {
         // ignore parse errors
@@ -50,7 +51,7 @@ export function useNotifications(
       eventSourceRef.current = null;
       setTimeout(connect, 5000);
     };
-  }, [workspaceId, handlers]);
+  }, [workspaceId]);
 
   const disconnect = useCallback(() => {
     eventSourceRef.current?.close();

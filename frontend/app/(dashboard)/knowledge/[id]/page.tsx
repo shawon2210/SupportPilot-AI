@@ -1,27 +1,15 @@
 "use client";
 
-
-
-import { useQuery } from "@tanstack/react-query";
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
-
-import { FileText, Trash2, AlertCircle, ArrowLeft } from "lucide-react";
+import { FileText, Trash2, AlertCircle, ArrowLeft, Globe } from "lucide-react";
 
 import { toast } from "sonner";
-
 import { api } from "@/lib/api";
-
 import { useWorkspaceStore } from "@/stores";
-
 import { cn, formatDate, formatBytes, getStatusColor } from "@/lib/utils";
-
 import { Card, CardContent } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
-
-
-
 import { Badge } from "@/components/ui/badge";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,11 +25,9 @@ export default function DocumentDetailPage() {
   const router = useRouter();
 
   const params = useParams();
-
+  const queryClient = useQueryClient();
   const { currentWorkspace } = useWorkspaceStore();
-
   const wsId = currentWorkspace?.id || "placeholder";
-
   const docId = params.id as string;
 
 
@@ -56,7 +42,7 @@ export default function DocumentDetailPage() {
 
       try {
 
-        const res = await api.get<{ id: string; name: string; source_type: string; status: string; file_size: number | null; mime_type: string | null; error_message: string | null; created_at: string | null; updated_at: string | null }>(`/workspaces/${wsId}/documents/${docId}`);
+        const res = await api.get<{ id: string; name: string; source_type: string; status: string; file_size: number | null; mime_type: string | null; error_message: string | null; metadata_: Record<string,unknown> | null; created_at: string | null; updated_at: string | null }>(`/workspaces/${wsId}/documents/${docId}`);
 
         return res;
 
@@ -67,12 +53,22 @@ export default function DocumentDetailPage() {
         throw err;
 
       }
-
     },
-
   });
 
+  const isPublished = doc?.metadata_?.published === true;
 
+  const publishMutation = useMutation({
+    mutationFn: async (publish: boolean) => {
+      return api.put(`/workspaces/${wsId}/documents/${docId}/metadata`, { published: publish });
+
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document", wsId, docId] });
+      toast.success(isPublished ? "Unpublished" : "Published to help center");
+    },
+    onError: () => toast.error("Failed to update publish status"),
+  });
 
   const { data: chunks, isLoading: chunksLoading, isError: chunksError } = useQuery({
 
@@ -266,6 +262,12 @@ export default function DocumentDetailPage() {
 
         <div className="flex items-center gap-2 self-start">
 
+          {doc.status === "ready" && (
+            <Button variant={isPublished ? "default" : "outline"} size="sm" onClick={() => publishMutation.mutate(!isPublished)} disabled={publishMutation.isPending} className="active:scale-[0.97]">
+              <Globe className="h-3.5 w-3.5 mr-1.5" />
+              {isPublished ? "Unpublish" : "Publish"}
+            </Button>
+          )}
           {doc.status === "ready" && doc.source_type !== "website" && (
             <Button variant="outline" size="sm" onClick={() => window.open(`/api/v1/workspaces/${wsId}/documents/${docId}/content`, "_blank")} className="active:scale-[0.97]">
               <FileText className="h-3.5 w-3.5 mr-1.5" />Preview

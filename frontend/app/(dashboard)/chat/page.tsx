@@ -14,6 +14,7 @@ import {
   Bot,
   Zap,
   ArrowRight,
+  Users,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useWorkspaceStore } from "@/stores";
@@ -32,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -83,8 +85,10 @@ export default function ChatListPage() {
   const workspaceId = currentWorkspace?.id || "";
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [modeFilter, setModeFilter] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -95,11 +99,15 @@ export default function ChatListPage() {
   /* ─── Queries & Mutations (unchanged logic) ──────────────── */
   const { data, isLoading, isError, error, refetch } =
     useQuery<PaginatedResponse<Chat>>({
-      queryKey: ["chats", workspaceId],
+      queryKey: ["chats", workspaceId, modeFilter],
       queryFn: async () => {
         try {
+          const params = new URLSearchParams();
+          if (modeFilter) params.set("mode", modeFilter);
+          if (modeFilter === "none") { params.delete("mode"); params.set("assigned_to", "none"); }
+          const qs = params.toString();
           return api.get<PaginatedResponse<Chat>>(
-            `/workspaces/${workspaceId}/chats`
+            `/workspaces/${workspaceId}/chats${qs ? `?${qs}` : ""}`
           );
         } catch (e) {
           toast.error("Failed to load chats");
@@ -126,6 +134,18 @@ export default function ChatListPage() {
       queryClient.invalidateQueries({ queryKey: ["chats", workspaceId] });
     },
     onError: () => toast.error("Failed to delete chat"),
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => api.delete(`/workspaces/${workspaceId}/chats/${id}`)));
+    },
+    onSuccess: (_data, ids) => {
+      toast.success(`Deleted ${ids.length} chat(s)`);
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["chats", workspaceId] });
+    },
+    onError: () => toast.error("Failed to delete some chats"),
   });
 
   /* ─── Handlers ───────────────────────────────────────────── */
@@ -263,6 +283,45 @@ export default function ChatListPage() {
         )}
       </div>
 
+      {/* ── Filters ────────────────────────────────────────── */}
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { label: "All", value: "" },
+          { label: "AI", value: "ai" },
+          { label: "Assigned", value: "hybrid" },
+          { label: "Unassigned", value: "none" },
+        ].map((f) => (
+          <button
+            key={f.value}
+            onClick={() => {
+              setModeFilter(f.value);
+              queryClient.invalidateQueries({ queryKey: ["chats"] });
+            }}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              modeFilter === f.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Bulk Actions ───────────────────────────────────── */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-2">
+          <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>Cancel</Button>
+            <Button variant="destructive" size="sm" onClick={() => bulkDeleteMutation.mutate(Array.from(selectedIds))} disabled={bulkDeleteMutation.isPending}>
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />Delete Selected
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* ── Chat List ──────────────────────────────────────── */}
       {isLoading ? (
         <div className="space-y-3">
@@ -333,6 +392,19 @@ export default function ChatListPage() {
             >
               <CardContent className="p-3.5 sm:p-5">
                 <div className="flex items-center justify-between gap-3">
+                  {/* Bulk checkbox */}
+                  <div className="flex items-center gap-0" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(chat.id)}
+                      onChange={() => {
+                        const next = new Set(selectedIds);
+                        if (next.has(chat.id)) next.delete(chat.id); else next.add(chat.id);
+                        setSelectedIds(next);
+                      }}
+                      className="h-4 w-4 rounded border-border accent-primary"
+                    />
+                  </div>
                   {/* Left: avatar + info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <Avatar className="h-10 w-10 rounded-xl shrink-0 bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10">
@@ -371,6 +443,12 @@ export default function ChatListPage() {
                             {chat.status}
                           </span>
                         </span>
+                        {chat.mode === "hybrid" && (
+                          <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600 bg-amber-500/5 font-medium">
+                            <Users className="h-3 w-3 mr-0.5" />
+                            Assigned
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>

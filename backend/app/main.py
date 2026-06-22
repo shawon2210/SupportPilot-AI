@@ -57,6 +57,10 @@ async def lifespan(app: FastAPI):
     # Initialize Sentry
     init_sentry()
 
+    # Warn about dev SECRET_KEY in production
+    if settings.is_production and settings.SECRET_KEY.startswith("dev-"):
+        logger.critical("SECRET_KEY is set to a development-only value! Set a real SECRET_KEY in production .env")
+
     # Initialize database
     await init_db()
     logger.info("Database initialized")

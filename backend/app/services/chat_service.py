@@ -125,6 +125,9 @@ Instructions:
         workspace_id: str,
         *,
         status: str | None = None,
+        mode: str | None = None,
+        assigned_to: str | None = None,
+        current_user_id: str | None = None,
         offset: int = 0,
         limit: int = 20,
     ) -> list[Chat]:
@@ -132,6 +135,14 @@ Instructions:
         stmt = select(Chat).where(Chat.workspace_id == workspace_id)
         if status:
             stmt = stmt.where(Chat.status == status)
+        if mode:
+            stmt = stmt.where(Chat.mode == mode)
+        if assigned_to == "none":
+            stmt = stmt.where(Chat.assigned_to.is_(None))
+        elif assigned_to == "me" and current_user_id:
+            stmt = stmt.where(Chat.assigned_to == current_user_id)
+        elif assigned_to:
+            stmt = stmt.where(Chat.assigned_to == assigned_to)
         stmt = stmt.order_by(Chat.updated_at.desc()).offset(offset).limit(limit)
         result = await self.db.execute(stmt)
         return list(result.scalars().all())

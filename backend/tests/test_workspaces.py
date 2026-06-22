@@ -6,15 +6,6 @@ import pytest
 from httpx import AsyncClient
 
 
-@pytest.fixture
-def auth_headers() -> dict[str, str]:
-    return {
-        "Authorization": "Bearer test-token",
-        "X-User-ID": "test-user-123",
-        "X-User-Email": "test@example.com",
-    }
-
-
 @pytest.mark.asyncio
 async def test_create_workspace(client: AsyncClient, auth_headers: dict):
     """Test creating a new workspace."""

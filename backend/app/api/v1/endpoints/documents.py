@@ -5,15 +5,20 @@ Handles file upload, knowledge source management, and vector search.
 
 from __future__ import annotations
 
+import json
 import os
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
 from app.core.rbac import require_role
+from app.models.document_chunk import DocumentChunk
+from app.models.knowledge_source import KnowledgeSource, KnowledgeSourceStatus
+from app.models.workspace import Workspace
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.knowledge_source import KnowledgeSourceResponse
 from app.services.document_service import DocumentProcessingError, DocumentService
@@ -181,4 +186,116 @@ async def get_document_chunks(
             }
             for chunk in chunks
         ],
+    }
+
+
+# ── Document update helpers ──────────────────────────────────
+
+
+@router.put("/documents/{source_id}/metadata")
+async def update_document_metadata(
+    workspace_id: str,
+    source_id: str,
+    body: dict,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
+):
+    """Update document-level metadata (e.g. published, tags)."""
+    from app.models.knowledge_source import KnowledgeSource, KnowledgeSourceStatus
+
+    stmt = select(KnowledgeSource).where(
+        KnowledgeSource.id == source_id,
+        KnowledgeSource.workspace_id == workspace_id,
+    )
+    result = await db.execute(stmt)
+    source = result.scalar_one_or_none()
+    if not source:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    current_meta = json.loads(source.metadata_) if source.metadata_ else {}
+    current_meta.update(body)
+    source.metadata_ = json.dumps(current_meta)
+    await db.commit()
+    return {"success": True, "metadata": current_meta}
+
+
+# ── Public Help Center (no auth required) ────────────────────
+
+
+@router.get("/public/{workspace_slug}/articles")
+async def list_public_articles(
+    workspace_slug: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """List published knowledge base articles for the public help center."""
+    ws = await db.execute(select(Workspace).where(Workspace.slug == workspace_slug))
+    ws = ws.scalar_one_or_none()
+    if not ws:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    if not ws.is_active:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    stmt = select(KnowledgeSource).where(
+        KnowledgeSource.workspace_id == ws.id,
+        KnowledgeSource.status == KnowledgeSourceStatus.READY,
+    ).order_by(KnowledgeSource.updated_at.desc()).limit(50)
+    result = await db.execute(stmt)
+    sources = result.scalars().all()
+
+    articles = []
+    for s in sources:
+        meta = json.loads(s.metadata_ or "{}")
+        if not meta.get("published", False):
+            continue
+        articles.append({
+            "id": s.id,
+            "name": s.name,
+            "source_type": s.source_type,
+            "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+        })
+
+    return {"success": True, "data": articles}
+
+
+@router.get("/public/{workspace_slug}/articles/{source_id}")
+async def get_public_article(
+    workspace_slug: str,
+    source_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get full article content for the public help center."""
+    ws = await db.execute(select(Workspace).where(Workspace.slug == workspace_slug))
+    ws = ws.scalar_one_or_none()
+    if not ws or not ws.is_active:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    source = await db.execute(select(KnowledgeSource).where(
+        KnowledgeSource.id == source_id,
+        KnowledgeSource.workspace_id == ws.id,
+        KnowledgeSource.status == KnowledgeSourceStatus.READY,
+    ))
+    source = source.scalar_one_or_none()
+    if not source:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    meta = json.loads(source.metadata_ or "{}")
+    if not meta.get("published", False):
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    chunks = await db.execute(select(DocumentChunk).where(
+        DocumentChunk.source_id == source_id,
+    ).order_by(DocumentChunk.chunk_index))
+    chunks = chunks.scalars().all()
+
+    full_content = "\n\n".join(c.content for c in chunks)
+    return {
+        "success": True,
+        "data": {
+            "id": source.id,
+            "name": source.name,
+            "source_type": source.source_type,
+            "content": full_content,
+            "updated_at": source.updated_at.isoformat() if source.updated_at else None,
+        },
     }

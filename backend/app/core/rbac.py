@@ -107,11 +107,8 @@ def require_role(minimum_role: str) -> Callable:
         request: Request,
         db=Depends(get_db),
     ) -> dict:
-        # Extract user_id from request state (set by auth middleware)
+        # Extract user_id from request state (set by get_current_user)
         user_id = getattr(request.state, "user_id", None)
-        if not user_id and settings.APP_ENV in ("development", "testing"):
-            # Dev/test-only fallback — NEVER in production
-            user_id = request.headers.get("X-User-ID")
         if not user_id:
             raise HTTPException(status_code=401, detail="Authentication required")
 

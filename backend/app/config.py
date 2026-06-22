@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     APP_HOST: str = "0.0.0.0"
     APP_PORT: int = 8000
     APP_URL: str = "http://localhost:8000"
-    SECRET_KEY: str  # No default — app will crash if not set (prevents accidental deployment with known key)
+    SECRET_KEY: str = ""  # Auto-generated in __init__ if empty
 
     # ── Database ───────────────────────────────────────────────
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/supportpilot.db"
@@ -123,6 +123,15 @@ class Settings(BaseSettings):
     # ── Rate Limiting ──────────────────────────────────────────
     RATE_LIMIT_PER_MINUTE: int = 60
 
+    # ── Email / SMTP ───────────────────────────────────────────
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "support@supportpilot.ai"
+    SMTP_FROM_NAME: str = "SupportPilot AI"
+    EMAIL_INBOUND_DOMAIN: str = ""  # Custom domain for inbound email parsing
+
     # ── Slack ──────────────────────────────────────────────────
     SLACK_SIGNING_SECRET: str = ""
     SLACK_BOT_TOKEN: str = ""
@@ -165,6 +174,14 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return [user_id.strip() for user_id in v.split(",") if user_id.strip()]
         return v
+
+    @field_validator("SECRET_KEY", mode="before")
+    @classmethod
+    def generate_secret_key(cls, v: Any) -> str:
+        if not v or (isinstance(v, str) and v.strip() == ""):
+            import secrets
+            return f"dev-{secrets.token_urlsafe(32)}"
+        return str(v)
 
     # ── Computed Properties ────────────────────────────────────
     @property

@@ -8,7 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { ArrowLeft, Send, Trash2, Copy, Check, Bot, User, FileText, ChevronDown, ChevronUp, MessageSquare, Zap } from "lucide-react";
+import { ArrowLeft, Send, Trash2, Copy, Check, Bot, User, FileText, ChevronDown, ChevronUp, MessageSquare, Zap, Users, Star } from "lucide-react";
 
 import { api } from "@/lib/api";
 
@@ -320,14 +320,33 @@ export default function ChatDetailPage() {
 
 
   useMutation({
-
     mutationFn: () => api.delete(`/workspaces/${workspaceId}/chats/${chatId}`),
-
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["chats", workspaceId] }); router.push("/chat"); },
-
   });
 
+  const escalateMutation = useMutation({
+    mutationFn: () => api.post(`/workspaces/${workspaceId}/chats/${chatId}/escalate`),
+    onSuccess: () => {
+      toast.success("Chat escalated to you");
+      queryClient.invalidateQueries({ queryKey: ["chat", workspaceId, chatId] });
+    },
+    onError: () => toast.error("Failed to escalate chat"),
+  });
 
+  const { data: ratingData } = useQuery({
+    queryKey: ["rating", workspaceId, chatId],
+    queryFn: () => api.get<{success: boolean; data: {id: string; score: number; comment: string | null} | null}>(`/workspaces/${workspaceId}/chats/${chatId}/rating`),
+    enabled: !!workspaceId && !!chatId && data?.status === "closed",
+  });
+
+  const submitRating = useMutation({
+    mutationFn: (args: {score: number; comment?: string}) => api.post(`/workspaces/${workspaceId}/chats/${chatId}/rating`, args),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rating", workspaceId, chatId] });
+      toast.success("Rating submitted");
+    },
+    onError: (err: Error) => toast.error(err.message || "Failed to submit rating"),
+  });
 
   const scrollToBottom = useCallback(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, []);
 
@@ -530,33 +549,50 @@ export default function ChatDetailPage() {
 
           <h2 className="font-medium text-sm truncate">{data?.title || "Chat"}</h2>
 
-          <p className="text-xs text-muted-foreground">{messages.length} messages</p>
+          <p className="text-xs text-muted-foreground">
+            {messages.length} messages
+            {data?.mode === "hybrid" && data?.assigned_to && (
+              <span className="ml-2 text-amber-600 font-medium">· Assigned to agent</span>
+            )}
+            {data?.tags && data.tags.length > 0 && (
+              <span className="ml-2 inline-flex gap-1">
+                {data.tags.map((tag: {id: string; name: string; color: string}) => (
+                  <span key={tag.id} className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium" style={{backgroundColor: tag.color + "20", color: tag.color, border: `1px solid ${tag.color}40`}}>
+                    {tag.name}
+                  </span>
+                ))}
+              </span>
+            )}
+          </p>
 
         </div>
 
-        <Button
-
-          variant="ghost"
-
-          size="icon"
-
-          onClick={async () => {
-
-            await api.delete(`/workspaces/${workspaceId}/chats/${chatId}`);
-
-            router.push("/chat");
-
-          }}
-
-          className="shrink-0 text-muted-foreground hover:text-destructive active:scale-95"
-
-          aria-label="Delete chat"
-
-        >
-
-          <Trash2 className="h-4 w-4" />
-
-        </Button>
+        <div className="flex items-center gap-1 shrink-0">
+          {data?.mode !== "hybrid" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => escalateMutation.mutate()}
+              disabled={escalateMutation.isPending}
+              className="h-8 text-xs gap-1 border-amber-500/30 text-amber-600 hover:bg-amber-500/10"
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Escalate</span>
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => {
+              await api.delete(`/workspaces/${workspaceId}/chats/${chatId}`);
+              router.push("/chat");
+            }}
+            className="shrink-0 text-muted-foreground hover:text-destructive active:scale-95"
+            aria-label="Delete chat"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
 
       </div>
 
@@ -654,7 +690,29 @@ export default function ChatDetailPage() {
 
       </div>
 
-
+      {data?.status === "closed" && (
+        <div className="mx-2 sm:mx-4 mb-2 rounded-lg border border-border bg-muted/20 px-4 py-3">
+          <p className="text-xs font-semibold text-muted-foreground mb-2">Rate this conversation</p>
+          {ratingData?.data ? (
+            <div className="flex items-center gap-2">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star key={s} className={`h-4 w-4 ${s <= (ratingData?.data?.score || 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`} />
+                ))}
+              </div>
+              {ratingData.data.comment && <p className="text-xs text-muted-foreground ml-2 italic">"{ratingData.data.comment}"</p>}
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button key={s} onClick={() => submitRating.mutate({ score: s })} disabled={submitRating.isPending} className="p-0.5 transition-colors hover:scale-110 active:scale-95">
+                  <Star className="h-5 w-5 text-muted-foreground/40 hover:text-amber-400 hover:fill-amber-400" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {showGapSuggestion && (
         <div className="mx-2 sm:mx-4 mb-2 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm">

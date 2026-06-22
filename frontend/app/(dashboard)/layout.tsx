@@ -25,6 +25,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [isAuthenticated, authLoading, router]);
 
+  // ── Keyboard shortcuts ──────────────────────────────────────
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "g" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        router.push("/dashboard");
+      }
+      if (e.key === "c" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        router.push("/chat");
+      }
+      if (e.key === "k" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        router.push("/knowledge");
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
+
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
     if (sidebarOpen && typeof window !== "undefined" && window.innerWidth < 1024) {

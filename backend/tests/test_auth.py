@@ -14,8 +14,8 @@ async def test_get_me_unauthorized(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_get_me_with_dev_headers(client: AsyncClient):
-    """Test /me with development headers (creates user on the fly)."""
+async def test_get_me_with_auth(client: AsyncClient, auth_headers: dict):
+    """Test /me with valid JWT after creating user via webhook."""
     # First, create a user via the webhook
     webhook_data = {
         "type": "user.created",
@@ -29,13 +29,8 @@ async def test_get_me_with_dev_headers(client: AsyncClient):
     response = await client.post("/api/v1/auth/webhook", json=webhook_data)
     assert response.status_code == 200
 
-    # Now get the user profile
-    headers = {
-        "Authorization": "Bearer test-token",
-        "X-User-ID": "test-user-123",
-        "X-User-Email": "test@example.com",
-    }
-    response = await client.get("/api/v1/auth/me", headers=headers)
+    # Now get the user profile with valid JWT
+    response = await client.get("/api/v1/auth/me", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == "test-user-123"

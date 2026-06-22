@@ -47,6 +47,7 @@ const mainNav = [
 
 const aiNav = [
   { href: "/ai/replies", label: "AI Replies", icon: Sparkles },
+  { href: "/ai/canned-responses", label: "Canned Responses", icon: MessageSquare },
   { href: "/ai/classification", label: "Classification", icon: Tag },
   { href: "/ai/escalation", label: "Escalation", icon: ArrowUpCircle },
   { href: "/ai/knowledge-gaps", label: "Knowledge Gaps", icon: AlertTriangle },

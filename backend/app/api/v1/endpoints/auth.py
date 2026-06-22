@@ -26,42 +26,56 @@ router = APIRouter()
 
 async def get_current_user(request: Request) -> dict:
     """
-    Extract and verify the current user from Clerk JWT.
-    In production, this validates the JWT against Clerk's JWKS.
-    For Phase 1, we extract from a simplified token or header.
+    Extract and verify the current user from JWT.
+
+    Supports two token types:
+    1. Internal JWT (signed by us via create_access_token)
+    2. Clerk JWT (verified against Clerk JWKS endpoint)
+
+    No X-User-ID fallback — every request must carry a valid token.
     """
-    # Check for Authorization header
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
 
     token = auth_header[7:]
 
-    # In production: validate JWT against Clerk JWKS
-    # For Phase 1: extract user info from token or use a dev header
-    # Support X-User-ID header for development only — NEVER in production
-    if _settings.APP_ENV in ("development", "testing"):
-        user_id = request.headers.get("X-User-ID")
-    else:
-        user_id = None
+    # Try internal JWT first (faster, no network call)
+    from app.core.security import decode_access_token
+    try:
+        payload = decode_access_token(token)
+        user_id = payload.get("sub")
+        email = payload.get("email", "")
+        if user_id:
+            request.state.user_id = user_id
+            request.state.user_email = email
+            return {"id": user_id, "email": email}
+    except Exception:
+        pass
 
-    if not user_id:
-        # Try to decode as JWT
+    # Fallback: verify against Clerk JWKS (only if configured)
+    if _settings.CLERK_JWKS_URL:
         try:
-            from app.core.security import decode_access_token
-            payload = decode_access_token(token)
+            import jwt as pyjwt
+            from jwt import PyJWKClient
+            jwks_client = PyJWKClient(_settings.CLERK_JWKS_URL)
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            payload = pyjwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256"],
+                audience=_settings.CLERK_PUBLISHABLE_KEY or None,
+            )
             user_id = payload.get("sub")
+            email = payload.get("email", "")
+            if user_id:
+                request.state.user_id = user_id
+                request.state.user_email = email
+                return {"id": user_id, "email": email}
         except Exception:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            pass
 
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Could not identify user")
-
-    # Attach user info to request.state so RBAC and other middleware can access it
-    request.state.user_id = user_id
-    request.state.user_email = request.headers.get("X-User-Email", "")
-
-    return {"id": user_id, "email": request.headers.get("X-User-Email", "")}
+    raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
 # ── Login Schemas ───────────────────────────────────────────

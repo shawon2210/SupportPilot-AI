@@ -2,7 +2,10 @@
 
 from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
-from app.models.chat import Chat, ChatStatus
+from app.models.canned_response import CannedResponse
+from app.models.chat import Chat, ChatMode, ChatStatus
+from app.models.chat_tag import ChatTag
+from app.models.conversation_rating import ConversationRating
 from app.models.document_chunk import DocumentChunk
 from app.models.knowledge_gap import KnowledgeGap
 from app.models.knowledge_source import (
@@ -22,8 +25,12 @@ from app.models.workspace import Workspace, WorkspacePlan
 __all__ = [
     "ApiKey",
     "AuditLog",
+    "CannedResponse",
     "Chat",
+    "ChatMode",
     "ChatStatus",
+    "ChatTag",
+    "ConversationRating",
     "DocumentChunk",
     "KnowledgeGap",
     "KnowledgeSource",

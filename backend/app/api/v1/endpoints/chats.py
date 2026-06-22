@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.endpoints.auth import get_current_user
 from app.core.database import get_db
 from app.core.rbac import require_role
+from app.models.chat import ChatMode, ChatStatus
 from app.schemas.base import PaginatedResponse, PaginationMeta, PaginationParams
 from app.schemas.chat import (
     ChatCreate,
@@ -24,6 +25,7 @@ from app.schemas.chat import (
     MessageResponse,
 )
 from app.services.chat_service import ChatError, ChatService
+from app.services.notification_service import get_notification_service
 
 router = APIRouter()
 
@@ -54,6 +56,8 @@ async def list_chats(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     status: str | None = None,
+    mode: str | None = None,
+    assigned_to: str | None = None,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     rbac: dict = Depends(require_role("agent")),
@@ -64,6 +68,9 @@ async def list_chats(
     chats = await service.list_chats(
         workspace_id,
         status=status,
+        mode=mode,
+        assigned_to=assigned_to,
+        current_user_id=current_user["id"],
         offset=pagination.offset,
         limit=pagination.limit,
     )
@@ -170,6 +177,38 @@ async def send_message(
         )
     except ChatError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/chats/{chat_id}/escalate")
+async def escalate_chat(
+    workspace_id: str,
+    chat_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
+):
+    """Escalate a chat from AI-only to hybrid mode and assign to current agent."""
+    service = ChatService(db)
+    chat = await service.get_chat(workspace_id, chat_id)
+    if chat.status == ChatStatus.CLOSED:
+        raise HTTPException(status_code=400, detail="Cannot escalate a closed chat")
+
+    chat.mode = ChatMode.HYBRID
+    chat.assigned_to = current_user["id"]
+    chat.status = ChatStatus.WAITING
+    await db.commit()
+
+    try:
+        ns = get_notification_service()
+        await ns.publish(workspace_id, {
+            "type": "chat.escalated",
+            "chat_id": chat_id,
+            "assigned_to": current_user["id"],
+        })
+    except Exception:
+        pass
+
+    return {"status": "escalated", "mode": chat.mode, "assigned_to": current_user["id"]}
 
 
 @router.post("/chats/{chat_id}/messages/stream")

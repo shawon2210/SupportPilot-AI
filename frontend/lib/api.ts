@@ -64,6 +64,9 @@ class ApiClient {
   async patch<T>(ep: string, data?: unknown): Promise<T> {
     return this.request<T>(ep, { method: "PATCH", body: data ? JSON.stringify(data) : undefined });
   }
+  async put<T>(ep: string, data?: unknown): Promise<T> {
+    return this.request<T>(ep, { method: "PUT", body: data ? JSON.stringify(data) : undefined });
+  }
   async delete<T>(ep: string): Promise<T> {
     return this.request<T>(ep, { method: "DELETE" });
   }

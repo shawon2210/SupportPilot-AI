@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
+
+from pydantic import field_validator
 
 from app.schemas.base import BaseSchema
 
@@ -17,5 +20,13 @@ class KnowledgeSourceResponse(BaseSchema):
     mime_type: str | None = None
     url: str | None = None
     error_message: str | None = None
+    metadata_: dict | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    @field_validator("metadata_", mode="before")
+    @classmethod
+    def parse_metadata(cls, v: object) -> object:
+        if isinstance(v, str):
+            return json.loads(v) if v else {}
+        return v

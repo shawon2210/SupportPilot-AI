@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.database import Base, get_db
+from app.core.security import create_access_token
 from app.main import app
 
 # Use in-memory SQLite for tests
@@ -84,11 +85,18 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
         yield ac
 
 
+TEST_USER_ID = "test-user-123"
+TEST_USER_EMAIL = "test@example.com"
+
+
 @pytest.fixture
 def auth_headers() -> dict[str, str]:
-    """Provide authentication headers for test requests."""
+    """Provide authentication headers with a valid JWT for test requests."""
+    from datetime import timedelta
+    token = create_access_token(
+        data={"sub": TEST_USER_ID, "email": TEST_USER_EMAIL},
+        expires_delta=timedelta(hours=1),
+    )
     return {
-        "Authorization": "Bearer test-token",
-        "X-User-ID": "test-user-123",
-        "X-User-Email": "test@example.com",
+        "Authorization": f"Bearer {token}",
     }

@@ -9,15 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 
 @pytest.fixture
-def auth_headers() -> dict[str, str]:
-    return {
-        "Authorization": "Bearer test-token",
-        "X-User-ID": "test-user-123",
-        "X-User-Email": "test@example.com",
-    }
-
-
-@pytest.fixture
 def sample_text_content() -> bytes:
     return b"This is a sample document for testing. It has multiple sentences. " * 20
 

@@ -22,6 +22,8 @@ class ChatResponse(BaseSchema):
     user_id: str | None = None
     title: str | None = None
     status: str = "active"
+    mode: str = "ai"
+    assigned_to: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

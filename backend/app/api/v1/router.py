@@ -15,11 +15,14 @@ from app.api.v1.endpoints import (
     documents,
     github,
     health,
+    ingest,
     members,
     notifications,
     public_api,
+    ratings,
     search,
     slack,
+    tags,
     webhooks,
     website_ingest,
     widget,
@@ -74,6 +77,15 @@ api_router.include_router(notifications.router, prefix="/workspaces/{workspace_i
 
 # ── GitHub ──────────────────────────────────────────────────────
 api_router.include_router(github.router, prefix="/workspaces/{workspace_id}", tags=["GitHub"])
+
+# ── CSAT Ratings ─────────────────────────────────────────────────
+api_router.include_router(ratings.router, prefix="/workspaces/{workspace_id}", tags=["Ratings"])
+
+# ── Chat Tags ────────────────────────────────────────────────────
+api_router.include_router(tags.router, prefix="/workspaces/{workspace_id}", tags=["Tags"])
+
+# ── Email Ingest ─────────────────────────────────────────────────
+api_router.include_router(ingest.router, prefix="/workspaces/{workspace_id}", tags=["Email Ingest"])
 
 # ── Slack Integration ─────────────────────────────────────────────
 api_router.include_router(slack.router, prefix="/slack", tags=["Slack"])
