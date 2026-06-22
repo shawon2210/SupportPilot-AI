@@ -10,10 +10,13 @@ from app.api.v1.endpoints import (
     api_keys,
     auth,
     billing,
+    canned_responses,
     chats,
     documents,
+    github,
     health,
     members,
+    notifications,
     public_api,
     search,
     slack,
@@ -62,6 +65,15 @@ api_router.include_router(widget.public_widget_router, prefix="/widget", tags=["
 
 # ── Public API (API key auth) ─────────────────────────────────────
 api_router.include_router(public_api.router, prefix="/v1", tags=["Public API"])
+
+# ── Canned Responses ──────────────────────────────────────────────
+api_router.include_router(canned_responses.router, prefix="/workspaces/{workspace_id}", tags=["Canned Responses"])
+
+# ── Notifications ────────────────────────────────────────────────
+api_router.include_router(notifications.router, prefix="/workspaces/{workspace_id}", tags=["Notifications"])
+
+# ── GitHub ──────────────────────────────────────────────────────
+api_router.include_router(github.router, prefix="/workspaces/{workspace_id}", tags=["GitHub"])
 
 # ── Slack Integration ─────────────────────────────────────────────
 api_router.include_router(slack.router, prefix="/slack", tags=["Slack"])

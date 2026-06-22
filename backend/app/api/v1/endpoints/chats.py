@@ -202,7 +202,16 @@ async def stream_message(
             ):
                 yield f"data: {json.dumps({'content': chunk})}\n\n"
 
-            yield f"data: {json.dumps({'done': True})}\n\n"
+            # Check if a knowledge gap should be created (low RAG confidence)
+            gap = await service.create_gap_from_chat(
+                workspace_id=workspace_id,
+                chat_id=chat_id,
+                content=data.content,
+            )
+            done_event: dict = {"done": True}
+            if gap:
+                done_event["gap"] = gap
+            yield f"data: {json.dumps(done_event)}\n\n"
         except ChatError as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 

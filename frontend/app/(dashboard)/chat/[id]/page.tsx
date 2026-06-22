@@ -286,6 +286,17 @@ export default function ChatDetailPage() {
 
   const [isStreaming, setIsStreaming] = useState(false);
 
+  const [showGapSuggestion, setShowGapSuggestion] = useState<{query: string; id: string} | null>(null);
+
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  const { data: templates } = useQuery({
+    queryKey: ["canned-responses", workspaceId],
+    queryFn: () => api.get<Array<{id: string; title: string; content: string; shortcut?: string; category?: string}>>(`/workspaces/${workspaceId}/canned-responses`),
+    enabled: !!workspaceId,
+    staleTime: 30000,
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -342,7 +353,7 @@ export default function ChatDetailPage() {
 
     if (!workspaceId || !chatId) { toast.error("Workspace or chat not loaded"); setIsStreaming(false); return; }
 
-    setInput(""); setStreamingContent(""); setIsStreaming(true);
+    setInput(""); setStreamingContent(""); setIsStreaming(true); setShowGapSuggestion(null);
 
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
@@ -388,7 +399,12 @@ export default function ChatDetailPage() {
 
               const parsed = JSON.parse(data);
 
-              if (parsed.done) { setIsStreaming(false); setStreamingContent(""); queryClient.invalidateQueries({ queryKey: ["chat", workspaceId, chatId] }); return; }
+              if (parsed.done) {
+                setIsStreaming(false); setStreamingContent("");
+                if (parsed.gap) setShowGapSuggestion(parsed.gap);
+                queryClient.invalidateQueries({ queryKey: ["chat", workspaceId, chatId] });
+                return;
+              }
 
               if (parsed.error) { setIsStreaming(false); setStreamingContent(""); toast.error(parsed.error); queryClient.invalidateQueries({ queryKey: ["chat", workspaceId, chatId] }); return; }
 
@@ -640,7 +656,50 @@ export default function ChatDetailPage() {
 
 
 
+      {showGapSuggestion && (
+        <div className="mx-2 sm:mx-4 mb-2 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm">
+          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="flex-1">
+            <p className="font-medium text-amber-800 dark:text-amber-300">Knowledge gap detected</p>
+            <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+              I couldn't find enough information in the knowledge base to answer this question thoroughly.
+            </p>
+            <Button
+              variant="link"
+              className="mt-1 h-auto p-0 text-amber-700 dark:text-amber-400 underline hover:text-amber-900"
+              onClick={() => {
+                router.push(`/knowledge/upload?from=chat&query=${encodeURIComponent(showGapSuggestion.query)}`);
+                setShowGapSuggestion(null);
+              }}
+            >
+              Add a document about this topic
+            </Button>
+          </div>
+          <button onClick={() => setShowGapSuggestion(null)} className="shrink-0 text-amber-400 hover:text-amber-600" aria-label="Dismiss">
+            <span className="text-lg leading-none">&times;</span>
+          </button>
+        </div>
+      )}
+
+
+
       <div className="border-t border-border p-2 sm:p-4 sticky bottom-0 bg-background z-sticky">
+
+        {showTemplates && templates && templates.length > 0 && (
+          <div className="mb-3 max-h-48 overflow-y-auto rounded-lg border border-border bg-background p-2 shadow-lg">
+            <p className="px-2 py-1 text-xs font-semibold text-muted-foreground">Templates</p>
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60 transition-colors"
+                onClick={() => { setInput(t.content); setShowTemplates(false); }}
+              >
+                <span className="font-medium">{t.title}</span>
+                {t.shortcut && <span className="ml-2 text-xs text-muted-foreground">/{t.shortcut}</span>}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-2">
 
@@ -680,21 +739,36 @@ export default function ChatDetailPage() {
 
           ) : (
 
-            <Button
+            <div className="flex gap-2">
 
-              onClick={handleSend}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowTemplates(!showTemplates)}
+                disabled={!templates?.length}
+                className="h-10 w-10 shrink-0"
+                title="Templates"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
 
-              disabled={!input.trim()}
+              <Button
 
-              className="w-full sm:w-auto h-10"
+                onClick={handleSend}
 
-            >
+                disabled={!input.trim()}
 
-              <Send className="h-4 w-4 sm:mr-2" />
+                className="h-10"
 
-              <span className="sm:inline hidden">Send</span>
+              >
 
-            </Button>
+                <Send className="h-4 w-4 sm:mr-2" />
+
+                <span className="sm:inline hidden">Send</span>
+
+              </Button>
+
+            </div>
 
           )}
 

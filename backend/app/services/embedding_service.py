@@ -120,7 +120,7 @@ class EmbeddingService:
         """Embed a single batch with retry logic."""
         from app.config import get_settings
         settings = get_settings()
-        if not settings.OPENAI_API_KEY and not settings.DEEPSEEK_API_KEY and not settings.GEMINI_API_KEY:
+        if settings.AI_PROVIDER != "mock" and not settings.OPENAI_API_KEY and not settings.DEEPSEEK_API_KEY and not settings.GEMINI_API_KEY:
             logger.info("No API keys configured — using random embeddings (dev mode)")
             import random
             results = []

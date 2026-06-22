@@ -5,10 +5,11 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
-import { useUIStore, useAuthStore, useWorkspaceStore } from "@/stores";
+import { useUIStore, useAuthStore, useWorkspaceStore, useNotificationStore } from "@/stores";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, MessageSquare, BookOpen, Settings } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useNotifications } from "@/hooks/use-notifications";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -47,6 +48,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [setSidebarOpen]);
+
+  const workspaceId = useWorkspaceStore((s) => s.currentWorkspace?.id || "");
+  const addNotification = useNotificationStore((s) => s.addNotification);
+
+  useNotifications(workspaceId, {
+    "document.ready": (e) => {
+      addNotification({
+        title: "Document Ready",
+        message: `${e.name || "Document"} processed successfully`,
+        type: "success",
+      });
+    },
+    "knowledge.gap": (e) => {
+      addNotification({
+        title: "Knowledge Gap",
+        message: `"${(e.query as string)?.slice(0, 80) || "New gap"}..."`,
+        type: "warning",
+      });
+    },
+  });
 
   // Show loading state while auth state is being hydrated from localStorage
   if (authLoading) {

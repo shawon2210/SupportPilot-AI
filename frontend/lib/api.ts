@@ -15,6 +15,7 @@ class ApiClient {
 
   setToken(token: string | null) { this.token = token; }
   getToken(): string | null { return this.token; }
+  getBaseUrl(): string { return this.baseUrl; }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
@@ -74,6 +75,13 @@ class ApiClient {
     };
     if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
     return fetch(url, { method: "POST", body: data ? JSON.stringify(data) : undefined, headers, signal });
+  }
+
+  async postFormData(ep: string, formData: FormData): Promise<Response> {
+    const url = `${this.baseUrl}${ep}`;
+    const headers: Record<string, string> = {};
+    if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
+    return fetch(url, { method: "POST", body: formData, headers });
   }
 }
 

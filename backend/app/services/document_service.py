@@ -221,6 +221,18 @@ class DocumentService(BaseService[KnowledgeSource]):
             source.id, len(chunks), embedding_result.total_tokens,
         )
 
+        try:
+            from app.services.notification_service import get_notification_service
+            ns = get_notification_service()
+            await ns.publish(workspace_id, {
+                "type": "document.ready",
+                "source_id": source.id,
+                "name": source.name,
+                "chunks": len(chunks),
+            })
+        except Exception:
+            logger.debug("Failed to publish notification", exc_info=True)
+
     def _extract_text(self, content: bytes, filename: str) -> str:
         """Extract text from file content using the appropriate extractor."""
         extractor = self.extractor_factory.get(filename=filename)

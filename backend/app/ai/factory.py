@@ -58,6 +58,7 @@ from app.ai.providers.deepseek_provider import DeepSeekProvider
 from app.ai.providers.freekey_provider import FreeKeyProvider
 from app.ai.providers.gemini_provider import GeminiProvider
 from app.ai.providers.kimi_provider import KimiProvider
+from app.ai.providers.mock_provider import MockProvider
 from app.ai.providers.openai_provider import OpenAIProvider
 from app.ai.providers.openrouter_provider import OpenRouterProvider
 
@@ -68,3 +69,4 @@ ProviderFactory.register("deepseek", DeepSeekProvider)
 ProviderFactory.register("openrouter", OpenRouterProvider)
 ProviderFactory.register("kimi", KimiProvider)
 ProviderFactory.register("freekey", FreeKeyProvider)
+ProviderFactory.register("mock", MockProvider)

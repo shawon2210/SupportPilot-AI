@@ -5,7 +5,10 @@ Handles file upload, knowledge source management, and vector search.
 
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.endpoints.auth import get_current_user
@@ -124,6 +127,35 @@ async def delete_document(
     """Delete a knowledge source and all its chunks."""
     service = DocumentService(db)
     await service.delete_source(workspace_id, source_id)
+
+
+@router.get("/documents/{source_id}/content")
+async def get_document_content(
+    workspace_id: str,
+    source_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    rbac: dict = Depends(require_role("agent")),
+):
+    """Serve the uploaded file for preview."""
+    from app.models.knowledge_source import KnowledgeSource
+    from sqlalchemy import select
+    stmt = select(KnowledgeSource).where(
+        KnowledgeSource.id == source_id,
+        KnowledgeSource.workspace_id == workspace_id,
+    )
+    result = await db.execute(stmt)
+    source = result.scalar_one_or_none()
+    if not source or not source.file_path:
+        raise HTTPException(status_code=404, detail="Source not found")
+    if not os.path.exists(source.file_path):
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    return FileResponse(
+        source.file_path,
+        media_type=source.mime_type or "application/octet-stream",
+        filename=source.name,
+        headers={"Content-Disposition": f"inline; filename=\"{source.name}\""},
+    )
 
 
 @router.get("/documents/{source_id}/chunks")

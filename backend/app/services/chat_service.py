@@ -27,6 +27,7 @@ from app.ai.factory import ProviderFactory
 from app.ai.providers.base import ChatMessage, ChatRequest, MessageRole
 from app.config import get_settings
 from app.models.chat import Chat, ChatStatus
+from app.models.knowledge_gap import KnowledgeGap
 from app.models.message import Message
 from app.models.message import MessageRole as MsgRole
 from app.models.usage_metric import UsageMetric
@@ -278,7 +279,7 @@ Instructions:
         if chat.status != ChatStatus.ACTIVE:
             raise ChatError(f"Chat is {chat.status}. Cannot send messages.")
 
-        # Store user message
+        # Store user message and COMMIT to release DB write lock
         user_message = Message(
             id=self._generate_id(),
             chat_id=chat_id,
@@ -287,7 +288,7 @@ Instructions:
             content=content,
         )
         self.db.add(user_message)
-        await self.db.flush()
+        await self.db.commit()
 
         # Build context
         context = await self._build_context(
@@ -335,10 +336,76 @@ Instructions:
             }),
         )
         self.db.add(assistant_message)
-        await self.db.flush()
+        await self.db.commit()
 
         # Track usage
         await self._track_usage(workspace_id, "messages", 2)
+
+    async def _find_existing_gap(self, workspace_id: str, query: str) -> KnowledgeGap | None:
+        """Find an existing open knowledge gap for a similar query."""
+        stmt = select(KnowledgeGap).where(
+            KnowledgeGap.workspace_id == workspace_id,
+            KnowledgeGap.status == "open",
+        )
+        result = await self.db.execute(stmt)
+        gaps = list(result.scalars().all())
+        for gap in gaps:
+            if gap.query.lower().strip() == query.lower().strip()[:500]:
+                return gap
+        return None
+
+    async def create_gap_from_chat(
+        self, workspace_id: str, chat_id: str, content: str
+    ) -> dict | None:
+        """Create a knowledge gap if the last assistant message had low RAG confidence."""
+        stmt = select(Message).where(
+            Message.chat_id == chat_id,
+            Message.role == MsgRole.ASSISTANT,
+        ).order_by(Message.created_at.desc()).limit(1)
+        result = await self.db.execute(stmt)
+        last_msg = result.scalar_one_or_none()
+        if not last_msg:
+            return None
+
+        meta = json.loads(last_msg.metadata_ or "{}")
+        sources_count = meta.get("sources_count", 0)
+
+        if meta.get("rag_used") and sources_count == 0:
+            existing = await self._find_existing_gap(workspace_id, content)
+            if existing:
+                existing.occurrence_count += 1
+                await self.db.commit()
+                return {"id": existing.id, "query": content, "occurrences": existing.occurrence_count}
+
+            gap = KnowledgeGap(
+                id=self._generate_id(),
+                workspace_id=workspace_id,
+                query=content[:500],
+                chat_id=chat_id,
+                message_id=last_msg.id,
+                confidence_score=0.0,
+                occurrence_count=1,
+                status="open",
+                suggested_action="Add content to the knowledge base addressing this topic",
+            )
+            self.db.add(gap)
+            await self.db.commit()
+
+            try:
+                from app.services.notification_service import get_notification_service
+                ns = get_notification_service()
+                await ns.publish(workspace_id, {
+                    "type": "knowledge.gap",
+                    "gap_id": gap.id,
+                    "query": content[:200],
+                    "chat_id": chat_id,
+                })
+            except Exception:
+                logger.debug("Failed to publish gap notification", exc_info=True)
+
+            return {"id": gap.id, "query": gap.query, "occurrences": 1}
+
+        return None
 
     # ── Context Building (RAG) ─────────────────────────────────────
 

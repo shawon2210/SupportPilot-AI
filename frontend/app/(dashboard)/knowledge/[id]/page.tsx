@@ -264,11 +264,21 @@ export default function DocumentDetailPage() {
 
         </div>
 
-        <Button variant="destructive" size="sm" onClick={handleDelete} className="self-start active:scale-[0.97]">
+        <div className="flex items-center gap-2 self-start">
 
-          <Trash2 className="h-3.5 w-3.5 mr-1.5" />Delete
+          {doc.status === "ready" && doc.source_type !== "website" && (
+            <Button variant="outline" size="sm" onClick={() => window.open(`/api/v1/workspaces/${wsId}/documents/${docId}/content`, "_blank")} className="active:scale-[0.97]">
+              <FileText className="h-3.5 w-3.5 mr-1.5" />Preview
+            </Button>
+          )}
 
-        </Button>
+          <Button variant="destructive" size="sm" onClick={handleDelete} className="active:scale-[0.97]">
+
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />Delete
+
+          </Button>
+
+        </div>
 
       </div>
 

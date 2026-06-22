@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+function generateId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 15);
+}
+
 interface AuthState {
   user: { id: string; email: string; first_name?: string; last_name?: string; avatar_url?: string } | null;
   token: string | null;
@@ -109,7 +116,7 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [], unreadCount: 0,
   addNotification: (n) => set((s) => ({
-    notifications: [{ ...n, id: crypto.randomUUID(), read: false, createdAt: new Date().toISOString() }, ...s.notifications].slice(0, 50),
+    notifications: [{ ...n, id: generateId(), read: false, createdAt: new Date().toISOString() }, ...s.notifications].slice(0, 50),
     unreadCount: s.unreadCount + 1,
   })),
   markAsRead: (id) => set((s) => ({ notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n), unreadCount: Math.max(0, s.unreadCount - 1) })),
