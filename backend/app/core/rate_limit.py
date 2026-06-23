@@ -31,12 +31,12 @@ class RateLimitResult:
 
 RATE_LIMITS = {
     "free": {
-        "requests_per_minute": 120,
-        "requests_per_hour": 3000,
-        "requests_per_day": 10000,
-        "widget_per_minute": 30,
-        "widget_per_day": 2000,
-        "api_per_minute": 60,
+        "requests_per_minute": 300,
+        "requests_per_hour": 10000,
+        "requests_per_day": 50000,
+        "widget_per_minute": 60,
+        "widget_per_day": 5000,
+        "api_per_minute": 120,
     },
     "starter": {
         "requests_per_minute": 60,

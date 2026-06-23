@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+
+from pydantic import field_validator
+
 from app.schemas.base import BaseSchema
 
 
@@ -25,4 +29,15 @@ class WidgetConfigResponse(BaseSchema):
     placeholder_text: str = "Type your message..."
     position: str = "right"
     show_branding: bool = True
+    allowed_domains: list[str] | None = None
     is_active: bool = True
+
+    @field_validator("allowed_domains", mode="before")
+    @classmethod
+    def parse_allowed_domains(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return v

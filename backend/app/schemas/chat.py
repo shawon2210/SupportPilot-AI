@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
+
+from pydantic import field_validator
 
 from app.schemas.base import BaseSchema
 
@@ -41,6 +44,16 @@ class MessageResponse(BaseSchema):
     sources: list | None = None
     tokens_used: int | None = None
     created_at: datetime | None = None
+
+    @field_validator("sources", mode="before")
+    @classmethod
+    def parse_sources(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return v
 
 
 class ChatWithMessages(ChatResponse):
